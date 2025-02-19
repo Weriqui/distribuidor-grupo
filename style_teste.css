@@ -153,7 +153,7 @@ main {
   color: #b30000; /* vermelho mais escuro */
 }
 .value-semired {
-  color: #ff2f2f; /* vermelho mais escuro */
+  color: white; /* vermelho mais escuro */
 }
 .value-veryred {
   color: #d70b00; /* vermelho mais escuro */
@@ -163,6 +163,9 @@ main {
 }
 .value-green {
   color: #006600; /* verde escuro */
+}
+.value-lightgreen {
+  color: #0aa10a; /* verde escuro */
 }
 .value-blue {
   color: #003c8f; /* azul escuro */
@@ -203,14 +206,18 @@ main {
   align-items: center;
   gap: 0.25rem;
 }
+.lost-distribution-chips .stage-chip,
+.lost-reasons-chips .stage-chip{
+  background-color:#d70b00;
 
+}
 .stage-chip strong {
   font-weight: bold;
   color: #ffffff;
 }
 .stage-chip strong.value-veryred {
   font-weight: bold;
-  color: #d70b00;
+  color: white;
 }
 
 /* Título das seções de chips */
