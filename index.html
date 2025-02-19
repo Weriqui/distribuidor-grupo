@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Distribuição de Leads</title>
+  <!-- Arquivo de estilos -->
+  <link rel="stylesheet" href="style_teste.css" />
+  <!-- Arquivo JS principal -->
+  <script src="main_teste.js" defer></script>
+</head>
+<body>
+  <!-- Overlay de carregamento (invisível por padrão) -->
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p id="loading-message">Carregando...</p>
+    </div>
+  </div>
+
+  <header>
+    <h1>Distribuição de Leads</h1>
+  </header>
+  
+  <main>
+    <div class="filters">
+      <label for="filtro_pipe">Filtro:</label>
+      <select id="filtro_pipe">
+        <option value="">Carregando filtros...</option>
+      </select>
+    </div>
+    
+    <!-- Container que vai receber os blocos de assessores -->
+    <div id="distribuicao">
+      <div class="bloco_assessor">
+        <!-- Blocos dinâmicos de assessores vão aqui -->
+      </div>
+    </div>
+    
+    <!-- Mensagens de erro (ocultas por padrão) -->
+    <div id="error-message" class="error hidden"></div>
+  </main>
+</body>
+</html>
