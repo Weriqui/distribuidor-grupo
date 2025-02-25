@@ -293,3 +293,18 @@ button:hover {
 .hidden {
   display: none;
 }
+
+#totais-leads-filtro{
+  display: flex;
+  justify-content: center;
+
+}
+#totais-leads-filtro p {
+  min-width: 25%;
+
+  font-size: x-large;
+}
+
+#totais-leads-filtro p span {
+  font-weight: bold;  
+}
