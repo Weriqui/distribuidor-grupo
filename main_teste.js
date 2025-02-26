@@ -158,10 +158,11 @@ async function add_blocoAssessor() {
         const userId = selectAssessor.value;
         if (!userId) return;
 		const nome = selectAssessor.selectedOptions[0].text
+		const email = selectAssessor.selectedOptions[0].getAttribute('email')
         // Substitua a chamada a carregaDadosDoAssessor por:
 		showLoadingOverlay(`Carregando dados de ${nome}`)
 		try{
-			const dados = await dados_assessor(userId);
+			const dados = await dados_assessor(userId,email);
 			atualizaInfoAssessor(novoBloco, dados);
 			const startDateInput = novoBloco.querySelector(".start-date-perdidos");
 			const endDateInput = novoBloco.querySelector(".end-date-perdidos");
@@ -486,6 +487,7 @@ function atualizaInfoAssessor(bloco, dadosDoAssessor) {
     const agendasHoje = dadosDoAssessor.agendas_diarias || 0;
     const sem_atividade = dadosDoAssessor.negocios.negocios_sem_atividade || 0;
 	const NegociosNovos = dadosDoAssessor.negocios_novos_hoje
+    const reservaDeMercado = dadosDoAssessor.em_reserva_fmi || 0;
     console.log(dadosDoAssessor)
 
     // Gera chips de negócios abertos em ordem
@@ -538,6 +540,11 @@ function atualizaInfoAssessor(bloco, dadosDoAssessor) {
       <div class="info-card">
         <span class="info-label">Negócios recebidos hoje</span>
         <span class="info-value value-lightgreen">${NegociosNovos}</span>
+      </div>
+
+      <div class="info-card">
+        <span class="info-label">Negócios em reserva FMI</span>
+        <span class="info-value value-lightgreen">${reservaDeMercado}</span>
       </div>
     </div>
 
@@ -628,7 +635,7 @@ async function busca_usuarios() {
     let option = '<option value="">Selecione o Assessor</option>\n';
     for (const usuario of data) {
         if (usuario.active_flag) {
-            option += `<option value="${usuario.id}">${usuario.name}</option>\n`;
+            option += `<option value="${usuario.id}" email="${usuario.email}">${usuario.name}</option>\n`;
         }
     }
     return option;
@@ -828,42 +835,63 @@ function total_agendas(dados) {
  * Faz as requisições em paralelo e retorna um objeto consolidado
  * com as atividades, negócios abertos, negócios perdidos e agendas.
  */
-async function dados_assessor(id_assessor) {
+async function dados_assessor(id_assessor, email_assessor) {
     const url1 = `https://api.pipedrive.com/v1/activities?user_id=${id_assessor}&filter_id=5790&api_token=6c7d502747be67acc199b483803a28a0c9b95c09`;
     const url2 = `https://api.pipedrive.com/v1/deals?user_id=${id_assessor}&status=open&limit=1000&api_token=6c7d502747be67acc199b483803a28a0c9b95c09`;
     const url3 = `https://api.pipedrive.com/v1/activities?user_id=${id_assessor}&filter_id=5793&api_token=6c7d502747be67acc199b483803a28a0c9b95c09`;
-    const apiToken = "6c7d502747be67acc199b483803a28a0c9b95c09"
-	const hoje = getToday();
+    const apiToken = "6c7d502747be67acc199b483803a28a0c9b95c09";
+    const hoje = getToday();
+
     try {
-        const [resp1, resp2, resp3,allLostDeals,negociosCriadosHoje] = await Promise.all([
-            fetch(url1), fetch(url2), fetch(url3),obterNegociosPerdidosNoPeriodo(id_assessor,hoje,hoje,apiToken),negociosRecebidosHoje(id_assessor, apiToken)
+        // Realiza todas as requisições em paralelo
+        const [resp1, resp2, resp3, allLostDeals, negociosCriadosHoje, reservaResponse] = await Promise.all([
+            fetch(url1), 
+            fetch(url2), 
+            fetch(url3),
+            obterNegociosPerdidosNoPeriodo(id_assessor, hoje, hoje, apiToken),
+            negociosRecebidosHoje(id_assessor, apiToken),
+            fetch("	https://automation-pipe-af55514da494.herokuapp.com/reserva", { 
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: email_assessor })
+            })
         ]);
 
-        // Verificação de falha em alguma das requisições
+        // Verifica se houve erro nas requisições do Pipedrive
         if (!resp1.ok || !resp2.ok || !resp3.ok) {
             throw new Error("Erro em uma das requisições de dados do assessor");
         }
 
-        // Converte cada resposta
-        const atvsVencidas = await resp1.json();
-        const negociosProspeccao = await resp2.json();
-		const agendadasHoje = await resp3.json();
+        // Converte as respostas para JSON
+        const [atvsVencidas, negociosProspeccao, agendadasHoje, allLostDealsData, negociosCriadosHojeData, reservaData] = await Promise.all([
+            resp1.json(),
+            resp2.json(),
+            resp3.json(),
+            allLostDeals,
+            negociosCriadosHoje,
+            reservaResponse.json()
+        ]);
 
+        // Verifica se a requisição da API Flask foi bem-sucedida
+        const totalReserva = reservaData.success ? reservaData.data.length : 0;
 
-        // Consolida tudo
+        // Consolida os dados
         const dadosConsolidados = {
             atividades: dados_atividades(atvsVencidas),
             negocios: dados_negocios(negociosProspeccao, id_assessor),
             agendas_diarias: total_agendas(agendadasHoje),
-            negocios_perdidos: dados_negocios_perdidos(allLostDeals, id_assessor),
-			negocios_novos_hoje: negociosCriadosHoje
+            negocios_perdidos: dados_negocios_perdidos(allLostDealsData, id_assessor),
+            negocios_novos_hoje: negociosCriadosHojeData,
+            em_reserva_fmi: totalReserva
         };
 
         return dadosConsolidados;
     } catch (error) {
+        console.error("Erro ao buscar dados do assessor:", error);
         throw new Error(error.message);
     }
 }
+
 
 /**
  * Exibe mensagem de erro em um elemento fixo na tela.
