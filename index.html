@@ -17,11 +17,29 @@
       <p id="loading-message">Carregando...</p>
     </div>
   </div>
+  <div id="progress-wrapper" class="hidden">
+    <p id="progress-msg">Distribuindo leads… não feche a aba.</p>
+    <div id="progress-bar">
+      <div id="progress-fill"></div>
+    </div>
+    <p id="progress-count">0 / 0</p>
+  </div>
 
   <header>
     <h1>Distribuição de Leads</h1>
   </header>
-  
+  <div id="modal-revisao" class="modal hidden">
+    <div class="modal-card">
+      <h3>Revisar distribuição</h3>
+      <ul id="lista-revisao"></ul>
+
+      <div class="modal-buttons">
+        <button id="btn-confirmar" class="btn-confirm">Confirmar</button>
+        <button id="btn-cancelar"  class="btn-cancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <main>
     <div class="filters">
       <label for="filtro_pipe">Filtro:</label>
@@ -42,5 +60,6 @@
     <!-- Mensagens de erro (ocultas por padrão) -->
     <div id="error-message" class="error hidden"></div>
   </main>
+  <button id="distribuir">Distribuir</button>
 </body>
 </html>

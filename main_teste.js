@@ -1,7 +1,9 @@
 document.addEventListener('DOMContentLoaded', async function() {
     const blocoAssessores = document.querySelector(".bloco_assessor");
     const selectFiltro = document.querySelector("#filtro_pipe");
+    const btnDistribuir = document.querySelector("#distribuir");   // é o único <button> fora dos blocos
 
+    
     // Carrega os filtros do Pipedrive
     try {
         await retorna_filtro();
@@ -19,6 +21,43 @@ document.addEventListener('DOMContentLoaded', async function() {
             leadsParaDistribuir(valor,'6c7d502747be67acc199b483803a28a0c9b95c09')
         }
     });
+
+    btnDistribuir.addEventListener("click", () => {
+        const revisao = calcularDistribuicao();
+        if (!revisao.length) {
+          alert("Nenhum assessor selecionado ou leads ainda não carregados.");
+          return;
+        }
+      
+        // monta a lista visual
+        const ul = document.getElementById("lista-revisao");
+        ul.innerHTML = "";                       // limpa
+        revisao.forEach(r => {
+          const li = document.createElement("li");
+          li.textContent = `${r.nome}: ${r.qtd} lead(s)`;
+          ul.appendChild(li);
+        });
+      
+        // guarda no elemento para usar no confirmar
+        ul.dataset.json = JSON.stringify(revisao);
+      
+        showModal();
+    });
+
+    document.getElementById("btn-cancelar").onclick = hideModal;
+
+    document.getElementById("btn-confirmar").onclick = async () => {
+        const revisao = JSON.parse(document.getElementById("lista-revisao").dataset.json);
+        hideModal();
+      
+        for (const r of revisao){
+            await distribuirLeadsSequencial(r.ids,r.assessorId,);
+        }
+        location.reload();
+    };
+      
+
+      
 });
 const ordemPreferida = [{
         name: 'Oportunidade',
@@ -151,6 +190,12 @@ async function add_blocoAssessor() {
     // Captura o select e o input number dentro do novo bloco
 	const selectAssessor = novoBloco.querySelector(".assessor_select");
     const inputNumber = novoBloco.querySelector("input[type='number']");
+    inputNumber.addEventListener("blur", () => {
+        /* no blur não fazemos nada além de garantir que seja inteiro positivo
+           — a contagem real é feita quando o usuário clica em “Distribuir”   */
+        if (inputNumber.value < 0) inputNumber.value = 0;
+    });
+      
 
 
     // Ao trocar o assessor no select, buscamos e exibimos os dados
@@ -1388,3 +1433,129 @@ function totaisFiltro(total,total_unico){
     totais.innerHTML = `<p><span class="value-green">${total}</span> Leads disponiveis</p>
     <p><span class="value-green">${total_unico}</span> Leads unicos</p>`
 }
+
+/* ---------- helpers ---------- */
+function showModal()  { document.getElementById("modal-revisao").classList.remove("hidden"); }
+function hideModal()  { document.getElementById("modal-revisao").classList.add("hidden"); }
+function getBlocos()  { return [...document.querySelectorAll(".inputs_assessor")]; }
+
+/* Constrói um array com os blocos na ordem de criação
+   e devolve [{nome, qtdInput, idsSelecionados}]*/
+function calcularDistribuicao () {
+  if (!leads_para_distribuir) return [];
+
+  const blocos = getBlocos();
+
+  /* títulos em ordem alfabética (A‑Z) */
+  const titulosOrdenados = Object.keys(leads_para_distribuir)
+        .filter(k => k !== "total" && k !== "total_leads_unicos")
+        .sort((a,b)=> a.localeCompare(b,"pt-BR",{sensitivity:"base"}));
+
+  let cursor = 0;
+  const revisao = [];
+
+  for (const bloco of blocos){
+    const sel        = bloco.querySelector(".assessor_select");
+    const assessorId = Number(sel.value);                       // << NOVO
+    const nome       = sel.selectedOptions[0]?.text || "(sem)";
+    const qtdDesejada= Number(bloco.querySelector("input[type='number']").value)||0;
+
+    let idsSelecionados   = [];
+    let titulosConsumidos = [];
+
+    while (idsSelecionados.length < qtdDesejada &&
+           cursor < titulosOrdenados.length){
+
+      const tituloAtual = titulosOrdenados[cursor];
+      const obj         = leads_para_distribuir[tituloAtual];   // {total, ids:[…]}
+
+      idsSelecionados.push(...obj.ids);                         // leva TODOS os ids
+      titulosConsumidos.push(...Array(obj.ids.length).fill(tituloAtual));
+
+      cursor++;   // próximo título
+    }
+
+    revisao.push({
+      assessorId,                // << NOVO
+      nome,
+      qtd    : idsSelecionados.length,
+      ids    : idsSelecionados,
+      titulos: titulosConsumidos
+    });
+  }
+  return revisao;
+}
+
+
+
+/**
+ * Distribui leads um‑a‑um, com retentativas progressivas.
+ * @param {number[]} leadIds   - array de ids dos leads
+ * @param {number}   ownerId   - id do assessor
+ * @param {number}   campoId   - id do campo personalizado
+ */
+async function distribuirLeadsSequencial(leadIds, ownerId){
+  if(!leadIds?.length){ alert("Nenhum lead para distribuir."); return; }
+
+  /* ---- prepara barra de progresso ---- */
+  const wrap   = document.getElementById("progress-wrapper");
+  const fill   = document.getElementById("progress-fill");
+  const count  = document.getElementById("progress-count");
+  const msg    = document.getElementById("progress-msg");
+  wrap.classList.remove("hidden");
+  msg.textContent = "Distribuindo leads… não feche a aba.";
+  count.textContent = `0 / ${leadIds.length}`;
+
+  let concluido = 0;
+
+  for (const leadId of leadIds){
+    const ok = await patchLeadComRetry(leadId, ownerId);
+    concluido++;
+    /* atualiza UI */
+    fill.style.width = `${(concluido/leadIds.length)*100}%`;
+    count.textContent = `${concluido} / ${leadIds.length}`;
+  }
+
+  msg.textContent = "Processo finalizado!";
+  setTimeout(()=> wrap.classList.add("hidden"), 4000);   // esconde após 4 s
+}
+
+/* ---------- PATCH + retentativa progressiva ---------- */
+async function patchLeadComRetry(leadId, ownerId){
+  const delays = [0, 10_000, 30_000, 60_000, 120_000];   // em ms
+  for (let tent=0; tent<delays.length; tent++){
+    if (tent>0) await wait(delays[tent]);                // espera antes da 2ª,3ª…
+
+    try{
+      const success = await patchLead(leadId, ownerId);
+      if(success) return true;          // deu certo, sai da função
+    }catch(e){
+      console.warn(`Lead ${leadId} falhou (tentativa ${tent+1}):`, e);
+    }
+  }
+  console.error(`Lead ${leadId} - todas as tentativas falharam.`);
+  return false;                         // segue p/ próximo lead
+}
+
+/* ---------- faz a requisição PATCH ---------- */
+async function patchLead(leadId, ownerId){
+  const url = `https://api.pipedrive.com/v1/leads/${leadId}?api_token=6c7d502747be67acc199b483803a28a0c9b95c09`;
+
+  const body = {
+    owner_id: ownerId,
+    "69b8e808073d8d63787d90385449dc48b00bc10d": ownerId
+  };
+
+  const resp = await fetch(url, {
+    method : "PATCH",
+    headers: { "Content-Type":"application/json", "Accept":"application/json" },
+    body   : JSON.stringify(body)
+  });
+
+  if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const json = await resp.json();
+  return json?.success === true;
+}
+
+/* ---------- helper de espera ---------- */
+const wait = ms => new Promise(r => setTimeout(r, ms));
