@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (valor) {
             // Exemplo: ao trocar de filtro, podemos criar um novo bloco de assessor
             add_blocoAssessor();
-            leadsParaDistribuir(valor,'6c7d502747be67acc199b483803a28a0c9b95c09')
+            leadsParaDistribuir(valor,'049fc9691e98bcb47e9815bc5c54be0486c289de')
         }
     });
 
@@ -532,7 +532,6 @@ function atualizaInfoAssessor(bloco, dadosDoAssessor) {
     const agendasHoje = dadosDoAssessor.agendas_diarias || 0;
     const sem_atividade = dadosDoAssessor.negocios.negocios_sem_atividade || 0;
 	const NegociosNovos = dadosDoAssessor.negocios_novos_hoje
-    const reservaDeMercado = dadosDoAssessor.em_reserva_fmi || 0;
     console.log(dadosDoAssessor)
 
     // Gera chips de negócios abertos em ordem
@@ -585,11 +584,6 @@ function atualizaInfoAssessor(bloco, dadosDoAssessor) {
       <div class="info-card">
         <span class="info-label">Negócios recebidos hoje</span>
         <span class="info-value value-lightgreen">${NegociosNovos}</span>
-      </div>
-
-      <div class="info-card">
-        <span class="info-label">Negócios em reserva FMI</span>
-        <span class="info-value value-lightgreen">${reservaDeMercado}</span>
       </div>
     </div>
 
@@ -671,7 +665,7 @@ async function busca_usuarios() {
         redirect: 'follow'
     };
 
-    const response = await fetch("https://api.pipedrive.com/v1/users?api_token=6c7d502747be67acc199b483803a28a0c9b95c09", requestOptions);
+    const response = await fetch("https://api.pipedrive.com/v1/users?api_token=049fc9691e98bcb47e9815bc5c54be0486c289de", requestOptions);
     if (!response.ok) {
         throw new Error("Erro ao buscar usuários");
     }
@@ -701,7 +695,7 @@ async function retorna_filtro() {
         redirect: 'follow'
     };
 
-    const response = await fetch("https://api.pipedrive.com/v1/filters?type=leads&api_token=6c7d502747be67acc199b483803a28a0c9b95c09", requestOptions);
+    const response = await fetch("https://api.pipedrive.com/v1/filters?type=leads&api_token=049fc9691e98bcb47e9815bc5c54be0486c289de", requestOptions);
     if (!response.ok) {
         throw new Error("Erro ao buscar filtros");
     }
@@ -881,25 +875,20 @@ function total_agendas(dados) {
  * com as atividades, negócios abertos, negócios perdidos e agendas.
  */
 async function dados_assessor(id_assessor, email_assessor) {
-    const url1 = `https://api.pipedrive.com/v1/activities?user_id=${id_assessor}&filter_id=5790&api_token=6c7d502747be67acc199b483803a28a0c9b95c09`;
-    const url2 = `https://api.pipedrive.com/v1/deals?user_id=${id_assessor}&status=open&limit=1000&api_token=6c7d502747be67acc199b483803a28a0c9b95c09`;
-    const url3 = `https://api.pipedrive.com/v1/activities?user_id=${id_assessor}&filter_id=5793&api_token=6c7d502747be67acc199b483803a28a0c9b95c09`;
-    const apiToken = "6c7d502747be67acc199b483803a28a0c9b95c09";
+    const url1 = `https://api.pipedrive.com/v1/activities?user_id=${id_assessor}&filter_id=5790&api_token=049fc9691e98bcb47e9815bc5c54be0486c289de`;
+    const url2 = `https://api.pipedrive.com/v1/deals?user_id=${id_assessor}&status=open&limit=1000&api_token=049fc9691e98bcb47e9815bc5c54be0486c289de`;
+    const url3 = `https://api.pipedrive.com/v1/activities?user_id=${id_assessor}&filter_id=5793&api_token=049fc9691e98bcb47e9815bc5c54be0486c289de`;
+    const apiToken = "049fc9691e98bcb47e9815bc5c54be0486c289de";
     const hoje = getToday();
 
     try {
         // Realiza todas as requisições em paralelo
-        const [resp1, resp2, resp3, allLostDeals, negociosCriadosHoje, reservaResponse] = await Promise.all([
+        const [resp1, resp2, resp3, allLostDeals, negociosCriadosHoje] = await Promise.all([
             fetch(url1), 
             fetch(url2), 
             fetch(url3),
             obterNegociosPerdidosNoPeriodo(id_assessor, hoje, hoje, apiToken),
             negociosRecebidosHoje(id_assessor, apiToken),
-            fetch("	https://automation-pipe-af55514da494.herokuapp.com/reserva", { 
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: email_assessor })
-            })
         ]);
 
         // Verifica se houve erro nas requisições do Pipedrive
@@ -908,17 +897,15 @@ async function dados_assessor(id_assessor, email_assessor) {
         }
 
         // Converte as respostas para JSON
-        const [atvsVencidas, negociosProspeccao, agendadasHoje, allLostDealsData, negociosCriadosHojeData, reservaData] = await Promise.all([
+        const [atvsVencidas, negociosProspeccao, agendadasHoje, allLostDealsData, negociosCriadosHojeData] = await Promise.all([
             resp1.json(),
             resp2.json(),
             resp3.json(),
             allLostDeals,
             negociosCriadosHoje,
-            reservaResponse.json()
         ]);
 
         // Verifica se a requisição da API Flask foi bem-sucedida
-        const totalReserva = reservaData.success ? reservaData.data.length : 0;
 
         // Consolida os dados
         const dadosConsolidados = {
@@ -927,7 +914,6 @@ async function dados_assessor(id_assessor, email_assessor) {
             agendas_diarias: total_agendas(agendadasHoje),
             negocios_perdidos: dados_negocios_perdidos(allLostDealsData, id_assessor),
             negocios_novos_hoje: negociosCriadosHojeData,
-            em_reserva_fmi: totalReserva
         };
 
         return dadosConsolidados;
@@ -1336,9 +1322,9 @@ async function carregaNegociosPerdidosBloco(bloco, userId, startDate, endDate) {
 
     try {
         // 1) Atualiza o filtro 5997 para esse userId e intervalo
-        await atualizaFiltroNegociosPerdidos(userId, startDate, endDate, '6c7d502747be67acc199b483803a28a0c9b95c09');
+        await atualizaFiltroNegociosPerdidos(userId, startDate, endDate, '049fc9691e98bcb47e9815bc5c54be0486c289de');
         // 2) Busca os negócios do filtro
-        const result = await buscaNegociosPerdidosNoPeriodo('6c7d502747be67acc199b483803a28a0c9b95c09');
+        const result = await buscaNegociosPerdidosNoPeriodo('049fc9691e98bcb47e9815bc5c54be0486c289de');
 
         // Processa e exibe no bloco
         atualizaUINegociosPerdidos(bloco, result, startDate, endDate);
@@ -1539,7 +1525,7 @@ async function patchLeadComRetry(leadId, ownerId){
 
 /* ---------- faz a requisição PATCH ---------- */
 async function patchLead(leadId, ownerId){
-  const url = `https://api.pipedrive.com/v1/leads/${leadId}?api_token=6c7d502747be67acc199b483803a28a0c9b95c09`;
+  const url = `https://api.pipedrive.com/v1/leads/${leadId}?api_token=049fc9691e98bcb47e9815bc5c54be0486c289de`;
 
   const body = {
     owner_id: ownerId,
