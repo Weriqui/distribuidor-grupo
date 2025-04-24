@@ -1081,7 +1081,7 @@ async function negociosRecebidosHoje(user_id, apiToken) {
                         },
                         {
                             object: "deal",
-                            field_id: "48", // Campo custom?
+                            field_id: "134", // Campo custom?
                             operator: "=",
                             value: String(user_id),
                             extra_value: null
