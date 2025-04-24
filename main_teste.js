@@ -875,9 +875,9 @@ function total_agendas(dados) {
  * com as atividades, negócios abertos, negócios perdidos e agendas.
  */
 async function dados_assessor(id_assessor, email_assessor) {
-    const url1 = `https://api.pipedrive.com/v1/activities?user_id=${id_assessor}&filter_id=5790&api_token=049fc9691e98bcb47e9815bc5c54be0486c289de`;
+    const url1 = `https://api.pipedrive.com/v1/activities?user_id=${id_assessor}&filter_id=1339&api_token=049fc9691e98bcb47e9815bc5c54be0486c289de`;
     const url2 = `https://api.pipedrive.com/v1/deals?user_id=${id_assessor}&status=open&limit=1000&api_token=049fc9691e98bcb47e9815bc5c54be0486c289de`;
-    const url3 = `https://api.pipedrive.com/v1/activities?user_id=${id_assessor}&filter_id=5793&api_token=049fc9691e98bcb47e9815bc5c54be0486c289de`;
+    const url3 = `https://api.pipedrive.com/v1/activities?user_id=${id_assessor}&filter_id=1343&api_token=049fc9691e98bcb47e9815bc5c54be0486c289de`;
     const apiToken = "049fc9691e98bcb47e9815bc5c54be0486c289de";
     const hoje = getToday();
 
@@ -1098,13 +1098,13 @@ async function negociosRecebidosHoje(user_id, apiToken) {
         body: raw,
         redirect: "follow"
     };
-    const url = `https://api.pipedrive.com/v1/filters/5996?api_token=${apiToken}`;
+    const url = `https://api.pipedrive.com/v1/filters/1341?api_token=${apiToken}`;
 
     try {
         // 1) Atualiza o filtro
         const response = await fetch(url, requestOptions);
         if (!response.ok) {
-            throw new Error("Erro ao atualizar o filtro 5996");
+            throw new Error("Erro ao atualizar o filtro 1341");
         }
 
         // 2) Agora busca os negócios desse filtro
@@ -1118,7 +1118,7 @@ async function negociosRecebidosHoje(user_id, apiToken) {
 }
 
 /**
- * Busca os negócios no filtro 5996, acumulando todas as páginas.
+ * Busca os negócios no filtro 1341, acumulando todas as páginas.
  * (Não precisa do parâmetro user_id aqui, pois o filtro já foi atualizado)
  */
 async function buscaNegociosRecebidosHoje(apiToken) {
@@ -1130,10 +1130,10 @@ async function buscaNegociosRecebidosHoje(apiToken) {
     let hasMore = true;
 
     while (hasMore) {
-        const url = `https://api.pipedrive.com/v1/deals?filter_id=5996&start=${start}&limit=${limit}&api_token=${apiToken}`;
+        const url = `https://api.pipedrive.com/v1/deals?filter_id=1341&start=${start}&limit=${limit}&api_token=${apiToken}`;
         const response = await fetch(url);
         if (!response.ok) {
-            throw new Error(`Erro ao buscar negócios do filtro 5996. Status: ${response.status}`);
+            throw new Error(`Erro ao buscar negócios do filtro 1341. Status: ${response.status}`);
         }
 
         const jsonResponse = await response.json();
@@ -1229,7 +1229,7 @@ async function atualizaFiltroNegociosPerdidos(user_id, startDate, endDate, apiTo
         }
     });
 
-    const url = `https://api.pipedrive.com/v1/filters/5997?api_token=${apiToken}`;
+    const url = `https://api.pipedrive.com/v1/filters/1342?api_token=${apiToken}`;
     const requestOptions = {
         method: "PUT",
 		headers: myHeaders,
@@ -1239,7 +1239,7 @@ async function atualizaFiltroNegociosPerdidos(user_id, startDate, endDate, apiTo
 
     const response = await fetch(url, requestOptions);
     if (!response.ok) {
-        throw new Error("Erro ao atualizar o filtro 5997 (negócios perdidos).");
+        throw new Error("Erro ao atualizar o filtro 1342 (negócios perdidos).");
     }
 }
 
@@ -1252,10 +1252,10 @@ async function buscaNegociosPerdidosNoPeriodo(apiToken) {
     let hasMore = true;
 
     while (hasMore) {
-        const url = `https://api.pipedrive.com/v1/deals?filter_id=5997&start=${start}&limit=${limit}&api_token=${apiToken}`;
+        const url = `https://api.pipedrive.com/v1/deals?filter_id=1342&start=${start}&limit=${limit}&api_token=${apiToken}`;
         const response = await fetch(url);
         if (!response.ok) {
-            throw new Error(`Erro ao buscar negócios do filtro 5997. Status: ${response.status}`);
+            throw new Error(`Erro ao buscar negócios do filtro 1342. Status: ${response.status}`);
         }
 
         const jsonResponse = await response.json();
@@ -1321,7 +1321,7 @@ async function carregaNegociosPerdidosBloco(bloco, userId, startDate, endDate) {
     showLoadingOverlay("Carregando negócios perdidos...");
 
     try {
-        // 1) Atualiza o filtro 5997 para esse userId e intervalo
+        // 1) Atualiza o filtro 1342 para esse userId e intervalo
         await atualizaFiltroNegociosPerdidos(userId, startDate, endDate, '049fc9691e98bcb47e9815bc5c54be0486c289de');
         // 2) Busca os negócios do filtro
         const result = await buscaNegociosPerdidosNoPeriodo('049fc9691e98bcb47e9815bc5c54be0486c289de');
@@ -1529,7 +1529,7 @@ async function patchLead(leadId, ownerId){
 
   const body = {
     owner_id: ownerId,
-    "69b8e808073d8d63787d90385449dc48b00bc10d": ownerId
+    "e76364fa33cbe6838731ebeb22e66d66ce78b6e8": ownerId
   };
 
   const resp = await fetch(url, {
