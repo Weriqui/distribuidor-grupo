@@ -724,7 +724,7 @@ async function busca_usuarios() {
         redirect: 'follow'
     };
 
-    const response = await fetch("https://api.pipedrive.com/v1/users?api_token=6c7d502747be67acc199b483803a28a0c9b95c09", requestOptions);
+    const response = await fetch("https://api.pipedrive.com/v1/users?api_token=49fc9691e98bcb47e9815bc5c54be0486c289de", requestOptions);
     if (!response.ok) {
         throw new Error("Erro ao buscar usuários");
     }
