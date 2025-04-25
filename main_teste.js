@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (valor && Array.isArray(allUsersDataRaw) && allUsersDataRaw.length > 0) {
             // Add a new block - add_blocoAssessor accesses global allUsersDataRaw
             add_blocoAssessor();
-            leadsParaDistribuir(valor,'49fc9691e98bcb47e9815bc5c54be0486c289de');
+            leadsParaDistribuir(valor,'049fc9691e98bcb47e9815bc5c54be0486c289de');
         } else if (!valor) {
              document.getElementById("totais-leads-filtro").innerHTML = "";
         } else if (!Array.isArray(allUsersDataRaw) || allUsersDataRaw.length === 0) {
@@ -724,7 +724,7 @@ async function busca_usuarios() {
         redirect: 'follow'
     };
 
-    const response = await fetch("https://api.pipedrive.com/v1/users?api_token=49fc9691e98bcb47e9815bc5c54be0486c289de", requestOptions);
+    const response = await fetch("https://api.pipedrive.com/v1/users?api_token=049fc9691e98bcb47e9815bc5c54be0486c289de", requestOptions);
     if (!response.ok) {
         throw new Error("Erro ao buscar usuários");
     }
