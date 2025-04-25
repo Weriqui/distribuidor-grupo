@@ -1,3 +1,6 @@
+const blockChoicesMap = new Map(); // Map<HTMLElement, Choices instance>
+const selectedAssessorsMap = new Map(); // Map<userId (number), blockElement (HTMLElement)>
+let allUsersDataRaw = []; // Global variable for raw user data from Pipedrive
 document.addEventListener('DOMContentLoaded', async function() {
     const blocoAssessores = document.querySelector(".bloco_assessor");
     const selectFiltro = document.querySelector("#filtro_pipe");
@@ -7,18 +10,30 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Carrega os filtros do Pipedrive
     try {
         await retorna_filtro();
+        const rawUserData = await busca_usuarios();
+        if (Array.isArray(rawUserData) && rawUserData.length > 0) {
+            allUsersDataRaw = rawUserData; // Store the raw data
+        } else if (Array.isArray(rawUserData) && rawUserData.length === 0) {
+            showError("Nenhum assessor ativo encontrado no Pipedrive.");
+        } else {
+            showError("Não foi possível carregar a lista de assessores.");
+        }
     } catch (error) {
         showError("Não foi possível carregar os filtros. Verifique sua conexão ou tente novamente mais tarde.");
     }
 
-    // Quando o usuário selecionar um filtro, habilita criar blocos de assessores
     selectFiltro.addEventListener('change', () => {
         hideError();
         const valor = selectFiltro.value;
-        if (valor) {
-            // Exemplo: ao trocar de filtro, podemos criar um novo bloco de assessor
+        // Only proceed if a filter is selected AND raw user data is available globally
+        if (valor && Array.isArray(allUsersDataRaw) && allUsersDataRaw.length > 0) {
+            // Add a new block - add_blocoAssessor accesses global allUsersDataRaw
             add_blocoAssessor();
-            leadsParaDistribuir(valor,'049fc9691e98bcb47e9815bc5c54be0486c289de')
+            leadsParaDistribuir(valor,'49fc9691e98bcb47e9815bc5c54be0486c289de');
+        } else if (!valor) {
+             document.getElementById("totais-leads-filtro").innerHTML = "";
+        } else if (!Array.isArray(allUsersDataRaw) || allUsersDataRaw.length === 0) {
+             showError("Não é possível carregar leads sem a lista de assessores carregada.");
         }
     });
 
@@ -160,6 +175,13 @@ async function add_blocoAssessor() {
     const blocoAssessores = document.querySelector(".bloco_assessor");
     const blocos = blocoAssessores.querySelectorAll(".inputs_assessor");
 
+    // Defensive check: Ensure raw user data is available globally
+    if (!Array.isArray(allUsersDataRaw) || allUsersDataRaw.length === 0) {
+        console.error("Error: Global raw user data is not a valid array or is empty. Cannot add assessor block.");
+        showError("Erro interno: Dados dos assessores indisponíveis para criar novo bloco.");
+        return null; // Indicate failure
+    }
+
     // Cria o novo bloco (HTML) de exemplo
     let novoBloco;
     try {
@@ -189,6 +211,38 @@ async function add_blocoAssessor() {
 
     // Captura o select e o input number dentro do novo bloco
 	const selectAssessor = novoBloco.querySelector(".assessor_select");
+    const availableUsersFormatted = getAvailableUsersFormatted();
+
+    // --- Choices.js Initialization ---
+    try {
+        setTimeout(() => {
+            selectAssessor.choices = new Choices(selectAssessor, {
+                searchFields: ['label', 'email'], // Crucial: Search by label (name) and email
+                choices: availableUsersFormatted, // Initialize with available users
+                removeItemButton: true, // Allow clearing selection
+                allowHTML: false, // Security
+                placeholder: true, // Enable placeholder
+                placeholderValue: 'Selecione o Assessor', // Custom placeholder text
+                shouldSort: true, // Sort options alphabetically
+                shouldSortItems: false, // Don't sort selected items
+            });
+            if (selectAssessor.choices) {
+                // Store the Choices instance mapped to this block element
+                blockChoicesMap.set(novoBloco, selectAssessor.choices);
+            }
+    
+        },100);
+        
+
+    } catch (e) { // Specific error handling for Choices.js initialization
+        console.error("Error initializing Choices.js:", e, "Data provided:", availableUsersFormatted);
+        showError("Erro ao inicializar seletor de assessores.");
+        // Remove the partially added block or indicate error on it? For now, just log.
+        // You might want to remove `novoBloco` from the DOM here.
+        return null; // Indicate failure to add block successfully
+    }
+
+    const insights_assessor = novoBloco.querySelector(".carregar_insigths");
     const inputNumber = novoBloco.querySelector("input[type='number']");
     inputNumber.addEventListener("blur", () => {
         /* no blur não fazemos nada além de garantir que seja inteiro positivo
@@ -196,10 +250,16 @@ async function add_blocoAssessor() {
         if (inputNumber.value < 0) inputNumber.value = 0;
     });
       
+    selectAssessor.addEventListener('change', async () => {
+        const userId = selectAssessor.value;
+        if (!userId) return;
+        insights_assessor.classList.remove('hidden')
+    })
+
 
 
     // Ao trocar o assessor no select, buscamos e exibimos os dados
-    selectAssessor.addEventListener('change', async () => {
+    insights_assessor.addEventListener('click', async () => {
         const userId = selectAssessor.value;
         if (!userId) return;
 		const nome = selectAssessor.selectedOptions[0].text
@@ -619,7 +679,6 @@ function atualizaInfoAssessor(bloco, dadosDoAssessor) {
  */
 async function retorna_bloco_exemplo() {
   // Carrega as <option> de usuários
-  const options = await busca_usuarios();
 
   // Cria a div principal do bloco
   let novoBloco = document.createElement("div");
@@ -630,8 +689,8 @@ async function retorna_bloco_exemplo() {
     <!-- Cabeçalho: seletor de assessor e input de leads -->
     <div class="assessor-header">
       <select class="assessor_select">
-        ${options}
       </select>
+      <button class="carregar_insigths hidden">Carregar Insights</button>
       <div class="leads-input-container">
         <label>Quantos leads?</label>
         <input type="number" step="10" min="20" max="100" value="20" />
@@ -665,19 +724,13 @@ async function busca_usuarios() {
         redirect: 'follow'
     };
 
-    const response = await fetch("https://api.pipedrive.com/v1/users?api_token=049fc9691e98bcb47e9815bc5c54be0486c289de", requestOptions);
+    const response = await fetch("https://api.pipedrive.com/v1/users?api_token=6c7d502747be67acc199b483803a28a0c9b95c09", requestOptions);
     if (!response.ok) {
         throw new Error("Erro ao buscar usuários");
     }
     const result = await response.json();
     const data = result.data;
-    let option = '<option value="">Selecione o Assessor</option>\n';
-    for (const usuario of data) {
-        if (usuario.active_flag) {
-            option += `<option value="${usuario.id}" email="${usuario.email}">${usuario.name}</option>\n`;
-        }
-    }
-    return option;
+    return data;
 }
 
 /**
@@ -1545,3 +1598,36 @@ async function patchLead(leadId, ownerId){
 
 /* ---------- helper de espera ---------- */
 const wait = ms => new Promise(r => setTimeout(r, ms));
+
+
+function formatUsersForChoices(usersRawArray) {
+    if (!Array.isArray(usersRawArray)) return [];
+    return usersRawArray
+        // Filter for active users and ensure required properties exist
+        .filter(user => user && user.active_flag && user.id !== undefined && user.name !== undefined && user.email !== undefined)
+        .map(user => ({
+            value: user.id, // Pipedrive user ID as the value
+            label: user.name, // User's name as the display text
+            email: user.email, // User's email for searching
+        }));
+}
+
+// Helper to get the list of users currently available for selection (not selected elsewhere)
+// Returns data formatted for Choices.js
+function getAvailableUsersFormatted() {
+    // Filter the raw user data to exclude users whose IDs are keys in selectedAssessorsMap
+    const availableUsersRaw = allUsersDataRaw.filter(user => !selectedAssessorsMap.has(user.id));
+
+    // Format the filtered list for Choices.js
+    const availableUsersFormatted = formatUsersForChoices(availableUsersRaw);
+
+    // Add the placeholder option at the beginning
+    availableUsersFormatted.unshift({
+         value: '',
+         label: 'Selecione o Assessor',
+         selected: true, // Mark this as initially selected
+         disabled: true,  // Make it non-selectable
+    });
+
+    return availableUsersFormatted;
+}

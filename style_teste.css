@@ -30,7 +30,8 @@ header h1 {
 
 /* Área principal */
 main {
-  max-width: 1200px;
+  width: 80%;
+  height: 82vh;
   margin: 2rem auto;
   padding: 0 1rem;
   overflow-y: auto;
@@ -92,18 +93,19 @@ main {
 
 /* Área de título do assessor (nome destacado) */
 .assessor-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  justify-items: center;
 }
 .assessor-header h2 {
-    margin: 0;
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #444;
-    text-align: center;
-    width: 100%;
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #444;
+  text-align: center;
+  width: 100%;
+  justify-self: center;
+  grid-column-start: 2;
 }
 
 /* Input de quantidade de leads (com label) */
@@ -111,6 +113,8 @@ main {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  justify-self: end;
+  grid-column-start: 3;
 }
 .leads-input-container label {
   font-size: 0.9rem;
@@ -256,6 +260,7 @@ button {
   cursor: pointer;
   border-radius: 0.25rem;
   margin-top: 0.5rem;
+  align-self: center;
 }
 button:hover {
   background-color: #45a049;
@@ -360,3 +365,45 @@ button:hover {
 #progress-bar{ width:100%; height:10px; background:#e5e5e5; border-radius:5px; overflow:hidden; }
 #progress-fill{ height:100%; width:0%; background:#2e8b57; transition:width .3s; }
 .hidden{ display:none; }
+
+/* Style the main Choices wrapper element to expand with its content */
+/* Use !important to try and override any conflicting styles */
+.choices {
+  margin-bottom: 0px !important;
+  min-width: 90% !important;
+  margin-bottom: 0px !important;
+  justify-self: start;
+
+}
+
+/* Ensure the inner container and text inside the input area itself don't wrap */
+/* Add !important here as well for robustness */
+.choices__inner {
+   white-space: nowrap !important; /* Prevent text wrapping in the input area */
+   min-width: max-content !important; /* Ensure the inner part also expands */
+}
+
+/* Ensure the specific selected item or placeholder text doesn't wrap */
+/* Add !important here as well */
+.choices__inner .choices__item--select,
+.choices__inner .choices__placeholder {
+   white-space: nowrap !important; /* Ensure the text doesn't wrap */
+   min-width: max-content !important; /* Ensure these elements try to be wide */
+}
+
+
+/* Keep the styles for the dropdown options and panel from previous steps,
+ adding !important if they don't already have it and weren't working fully */
+
+/* Style the individual options within the dropdown */
+.choices__list--dropdown .choices__item {
+  white-space: nowrap !important; /* Ensure text within options doesn't wrap */
+  min-width: max-content !important; /* Ensure options try to be wide */
+}
+
+/* Style the dropdown panel itself */
+.choices__list--dropdown {
+  min-width: max-content !important; /* Ensure the dropdown panel expands */
+  /* If min-width doesn't work, uncomment and try width: max-content !important; */
+  /* width: max-content !important; */
+}
