@@ -775,7 +775,7 @@ function dados_negocios(dados, user_id) {
 
     if (negocios) {
         negocios.forEach(negocio => {
-            if (negocio.user_id.id === Number(user_id) && negocio.pipeline_id == 11) {
+            if (negocio.user_id.id === Number(user_id) && negocio.pipeline_id == 2) {
                 const dataAdicionada = new Date(negocio.add_time.replace(" ", "T"));
                 const criadoHoje = dataAdicionada.toDateString() === hoje.toDateString() ? "criado_hoje" : false;
                 const etapaNegocio = stages_map.stage[`${negocio.stage_id}`].name;
@@ -861,7 +861,7 @@ function dados_negocios_perdidos(dados, user_id) {
             if (negocio.lost_time) {
                 const dataPerda = new Date(negocio.local_lost_date + "T00:00:00");
                 const perdidoHoje = dataPerda.toDateString() === hoje.toDateString() ? true : false;
-                if (negocio.user_id.id === Number(user_id) && negocio.pipeline_id == 11 && perdidoHoje) {
+                if (negocio.user_id.id === Number(user_id) && negocio.pipeline_id == 2 && perdidoHoje) {
                     const etapaNegocio = stages_map.stage[`${negocio.stage_id}`].name;
                     const motivoPerda = negocio.lost_reason || 'Sem motivo';
 
