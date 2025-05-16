@@ -79,7 +79,7 @@ const ordemPreferida = [{
         order_nr: 1
     },
     {
-        name: 'Tentativa',
+        name: 'Tentativa de contato',
         order_nr: 2
     },
     {
@@ -441,7 +441,7 @@ function gerarChipsPerdas(negociosPerdidos) {
 
     const etapasConhecidas = [
         "Oportunidade",
-        "Tentativa",
+        "Tentativa de contato",
         "Contato efetivo",
         "Qualificado",
         "Agendado",
@@ -527,7 +527,7 @@ function atualizaInfoAssessor(bloco, dadosDoAssessor) {
             order_nr: 1
         },
         {
-            name: 'Tentativa',
+            name: 'Tentativa de contato',
             order_nr: 2
         },
         {
