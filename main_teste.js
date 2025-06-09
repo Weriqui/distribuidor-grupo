@@ -1635,7 +1635,7 @@ async function converter_lead_negocio(leadId){
 
     const resp = await fetch(url, {
         method : "POST",
-        headers: { "Content-Type":"application/json", "Accept":"application/json" },
+        headers: myHeaders,
         body   : JSON.stringify(body),
         redirect: "follow"
     });
