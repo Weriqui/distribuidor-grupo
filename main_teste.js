@@ -1630,7 +1630,7 @@ async function converter_lead_negocio(leadId){
 
     const body = {
         "pipeline_id": 2,
-        "stage_id": 8
+        "stage_id": 6
     };
 
     const resp = await fetch(url, {
