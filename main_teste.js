@@ -1534,29 +1534,35 @@ function calcularDistribuicao () {
  * @param {number}   campoId   - id do campo personalizado
  */
 async function distribuirLeadsSequencial(leadIds, ownerId){
-  if(!leadIds?.length){ alert("Nenhum lead para distribuir."); return; }
+    if(!leadIds?.length){ alert("Nenhum lead para distribuir."); return; }
 
-  /* ---- prepara barra de progresso ---- */
-  const wrap   = document.getElementById("progress-wrapper");
-  const fill   = document.getElementById("progress-fill");
-  const count  = document.getElementById("progress-count");
-  const msg    = document.getElementById("progress-msg");
-  wrap.classList.remove("hidden");
-  msg.textContent = "Distribuindo leads… não feche a aba.";
-  count.textContent = `0 / ${leadIds.length}`;
+    /* ---- prepara barra de progresso ---- */
+    const wrap   = document.getElementById("progress-wrapper");
+    const fill   = document.getElementById("progress-fill");
+    const count  = document.getElementById("progress-count");
+    const msg    = document.getElementById("progress-msg");
+    wrap.classList.remove("hidden");
+    msg.textContent = "Distribuindo leads… não feche a aba.";
+    count.textContent = `0 / ${leadIds.length}`;
 
-  let concluido = 0;
+    let concluido = 0;
 
-  for (const leadId of leadIds){
-    const ok = await patchLeadComRetry(leadId, ownerId);
-    concluido++;
-    /* atualiza UI */
-    fill.style.width = `${(concluido/leadIds.length)*100}%`;
-    count.textContent = `${concluido} / ${leadIds.length}`;
-  }
+    for (const leadId of leadIds){
+        const okPatch = await patchLeadComRetry(leadId, ownerId);
+        let okConvert = false;
+        if (okPatch){
+            okConvert = await convertLeadComRetry(leadId);
+        }
+        if (okConvert){
+            concluido++;
+            /* atualiza UI */
+            fill.style.width = `${(concluido/leadIds.length)*100}%`;
+            count.textContent = `${concluido} / ${leadIds.length}`;
+        }
+    }
 
-  msg.textContent = "Processo finalizado!";
-  setTimeout(()=> wrap.classList.add("hidden"), 4000);   // esconde após 4 s
+    msg.textContent = "Processo finalizado!";
+    setTimeout(()=> wrap.classList.add("hidden"), 4000);   // esconde após 4 s
 }
 
 /* ---------- PATCH + retentativa progressiva ---------- */
@@ -1594,6 +1600,53 @@ async function patchLead(leadId, ownerId){
   if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
   const json = await resp.json();
   return json?.success === true;
+}
+
+/* ---------- converter_lead_negocio + retentativa progressiva ---------- */
+async function convertLeadComRetry(leadId){
+  const delays = [0, 10_000, 30_000, 60_000, 120_000];   // em ms
+  for (let tent=0; tent<delays.length; tent++){
+    if (tent>0) await wait(delays[tent]);                // espera antes da 2ª,3ª…
+
+    try{
+      const success = await converter_lead_negocio(leadId);
+      if(success) return true;          // deu certo, sai da função
+    }catch(e){
+      console.warn(`Conversão do lead ${leadId} falhou (tentativa ${tent+1}):`, e);
+    }
+  }
+  console.error(`Lead ${leadId} - todas as tentativas falharam.`);
+  return false;                         // segue p/ próximo lead
+}
+
+/* ---------- faz a conversao de lead para negocio ---------- */
+async function converter_lead_negocio(leadId){
+    const url = `https://api.pipedrive.com/api/v2/leads/${leadId}/convert/deal`;
+    
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Accept", "application/json");
+    myHeaders.append("x-api-token", "049fc9691e98bcb47e9815bc5c54be0486c289de");
+
+    const body = {
+        "pipeline_id": 2,
+        "stage_id": 8
+    };
+
+    const resp = await fetch(url, {
+        method : "POST",
+        headers: { "Content-Type":"application/json", "Accept":"application/json" },
+        body   : JSON.stringify(body),
+        redirect: "follow"
+    });
+
+    if (!resp.ok){
+        console.warn(`Falha HTTP ${resp.status} ao converter lead ${leadId}`);
+        return false;
+    }
+
+    const json = await resp.json();
+    return json?.success === true;
 }
 
 /* ---------- helper de espera ---------- */
