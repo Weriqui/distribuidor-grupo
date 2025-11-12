@@ -757,7 +757,7 @@ async function retorna_filtro() {
     let option = '<option value="">Selecione o Filtro</option>\n';
     for (const filtro of data) {
         // Exemplo de filtragem por user_id específico
-        if (filtro.active_flag && filtro.user_id == 14284568 && filtro.name.includes(" (FILTRO)")) {
+        if (filtro.active_flag && (filtro.user_id == 14284568 || filtro.user_id == 23639057) && filtro.name.includes(" (FILTRO)")) {
             option += `<option value="${filtro.id}">${filtro.name}</option>\n`;
         }
     }
