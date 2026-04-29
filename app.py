@@ -645,13 +645,17 @@ def insights_snapshot():
         )
 
     def _activities_overdue():
+        # user_id=0 = todas as atividades (de todos os usuários) que casam o
+        # filtro. Sem esse param, v1 devolve só as do dono do token.
         return _pipedrive_paginate(
-            "/activities", {"filter_id": FILTER_ATIVIDADES_ATRASADAS}
+            "/activities",
+            {"filter_id": FILTER_ATIVIDADES_ATRASADAS, "user_id": 0},
         )
 
     def _activities_today():
         return _pipedrive_paginate(
-            "/activities", {"filter_id": FILTER_ATIVIDADES_AGENDAS}
+            "/activities",
+            {"filter_id": FILTER_ATIVIDADES_AGENDAS, "user_id": 0},
         )
 
     # Busca tudo em paralelo.
