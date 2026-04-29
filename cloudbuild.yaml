@@ -33,7 +33,7 @@ options:
   dynamicSubstitutions: true
 
 images:
-  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:${SHORT_SHA}"
+  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:$BUILD_ID"
   - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:latest"
 
 steps:
@@ -61,7 +61,7 @@ steps:
     name: gcr.io/cloud-builders/docker
     args:
       - build
-      - --tag=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:${SHORT_SHA}
+      - --tag=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:$BUILD_ID
       - --tag=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:latest
       - --cache-from=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:latest
       - .
@@ -83,7 +83,7 @@ steps:
       - run
       - deploy
       - ${_SERVICE}
-      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:${SHORT_SHA}
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:$BUILD_ID
       - --region=${_REGION}
       - --platform=managed
       - --allow-unauthenticated
@@ -94,5 +94,10 @@ steps:
       - --timeout=${_TIMEOUT}
       - --max-instances=${_MAX_INSTANCES}
       - --min-instances=${_MIN_INSTANCES}
-      - --set-secrets=PIPEDRIVE_API_TOKEN=pipedrive-api-token:latest,APP_API_KEY=app-api-key:latest
+      # Para ligar auth via X-API-Key:
+      #   1) crie o secret:  echo -n "STRING_LONGA" | gcloud secrets create app-api-key --data-file=-
+      #   2) dê acesso:      gcloud secrets add-iam-policy-binding app-api-key --member=serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com --role=roles/secretmanager.secretAccessor
+      #   3) substitua a linha abaixo por:
+      #      - --set-secrets=PIPEDRIVE_API_TOKEN=pipedrive-api-token:latest,APP_API_KEY=app-api-key:latest
+      - --set-secrets=PIPEDRIVE_API_TOKEN=pipedrive-api-token:latest
       - --set-env-vars=^@@^ALLOWED_ORIGINS=${_ALLOWED_ORIGINS}@@PIPEDRIVE_FILTER_OWNER_IDS=${_FILTER_OWNER_IDS}@@PIPEDRIVE_FILTER_NAME_SUFFIX=${_FILTER_NAME_SUFFIX}@@PIPEDRIVE_ORG_FETCH_WORKERS=${_ORG_FETCH_WORKERS}
