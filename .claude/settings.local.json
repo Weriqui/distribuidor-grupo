@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import ast, sys; ast.parse\\(open\\('c:/Users/weriq/Desktop/Projetos/distribuidor-grupo/app.py', encoding='utf-8'\\).read\\(\\)\\); print\\('app.py OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('c:/Users/weriq/Desktop/Projetos/distribuidor-grupo/app.py', encoding='utf-8'\\).read\\(\\)\\); print\\('app.py OK'\\)\")",
+      "Bash(python -c ' *)"
+    ]
+  }
+}

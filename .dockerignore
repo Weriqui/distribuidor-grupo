@@ -1,0 +1,53 @@
+# Git e config local
+.git
+.gitignore
+.dockerignore
+.github
+.gitlab-ci.yml
+
+# Secrets — NUNCA entrar na imagem
+.env
+.env.*
+!.env.example
+
+# Python local
+.venv
+venv
+env
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov
+*.egg-info
+
+# IDE / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+.claude
+
+# Docs / arquivos legados não usados em runtime
+README.md
+DEPLOY.md
+*.md
+main_teste.js
+teste.js
+style_teste.css
+a
+
+# Build / cloud
+Dockerfile
+cloudbuild.yaml
+*.log
+
+# Node (caso entre acidentalmente)
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log

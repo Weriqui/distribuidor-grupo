@@ -1,67 +1,1212 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Distribuição de Leads</title>
-  <!-- Arquivo de estilos -->
-  <link rel="stylesheet" href="style_teste.css" />
-  <!-- Arquivo JS principal -->
-  <script src="main_teste.js" defer></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5f5f7" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <title>Distribuição de Leads — Grupo Villela</title>
+
+  <link rel="preconnect" href="https://esm.sh" />
+  <link rel="preconnect" href="https://cdn.tailwindcss.com" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sf: ['-apple-system','BlinkMacSystemFont','"SF Pro Display"','"SF Pro Text"','Inter','"Segoe UI"','Roboto','Helvetica','Arial','sans-serif'],
+          },
+          colors: {
+            ink:     { 900: '#1d1d1f', 800: '#2c2c2e', 700: '#3a3a3c', 500: '#6e6e73', 400: '#86868b', 300: '#a1a1a6', 200: '#c7c7cc' },
+            surface: { 0: '#ffffff', 50: '#f5f5f7', 100: '#e8e8ed' },
+            blue:    { 500: '#0a84ff', 600: '#0071e3', 700: '#0058b0' },
+            apple:   { red: '#ff3b30', orange: '#ff9500', yellow: '#ffcc00', green: '#30d158', mint: '#63e6e2', teal: '#5ac8fa', indigo: '#5e5ce6', purple: '#bf5af2' },
+          },
+          borderRadius: { '2xl': '16px', '3xl': '20px', '4xl': '28px' },
+          boxShadow: {
+            soft:  '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(15,15,20,0.06)',
+            card:  '0 1px 2px rgba(0,0,0,0.03), 0 4px 12px rgba(0,0,0,0.04)',
+            ring:  '0 0 0 4px rgba(10,132,255,0.18)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "react":              "https://esm.sh/react@18.3.1",
+      "react/jsx-runtime":  "https://esm.sh/react@18.3.1/jsx-runtime",
+      "react-dom":          "https://esm.sh/react-dom@18.3.1?deps=react@18.3.1",
+      "react-dom/client":   "https://esm.sh/react-dom@18.3.1/client?deps=react@18.3.1",
+      "lucide-react":       "https://esm.sh/lucide-react@0.460.0?deps=react@18.3.1"
+    }
+  }
+  </script>
+
+  <script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+
+  <style>
+    :root { --ease: cubic-bezier(0.22, 1, 0.36, 1); }
+
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      letter-spacing: -0.011em;
+      color: #1d1d1f;
+      background:
+        radial-gradient(1200px 800px at 0% -10%, #eaf1ff 0%, transparent 60%),
+        radial-gradient(1000px 700px at 110% 0%, #f0eefc 0%, transparent 55%),
+        linear-gradient(180deg, #f5f5f7 0%, #efeff2 100%);
+      background-attachment: fixed;
+    }
+
+    *:focus-visible {
+      outline: 2px solid #0a84ff;
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+
+    @keyframes pop-in {
+      0%   { opacity: 0; transform: translateY(8px) scale(0.985); }
+      100% { opacity: 1; transform: none; }
+    }
+    @keyframes hud-in {
+      0%   { opacity: 0; transform: scale(0.92); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes spin   { to { transform: rotate(360deg); } }
+    @keyframes pulse  { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+    .animate-pop { animation: pop-in .4s var(--ease) both; }
+    .animate-hud { animation: hud-in .3s var(--ease) both; }
+    .animate-fade { animation: fade-in .25s ease both; }
+
+    /* Apple-style activity indicator: conic gradient ring */
+    .apple-spinner {
+      --size: 44px;
+      --color: rgba(10, 132, 255, 1);
+      width: var(--size); height: var(--size);
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, rgba(10,132,255,0) 0deg, var(--color) 320deg, var(--color) 360deg);
+      -webkit-mask: radial-gradient(circle, transparent calc(50% - 4px), black calc(50% - 3.5px));
+              mask: radial-gradient(circle, transparent calc(50% - 4px), black calc(50% - 3.5px));
+      animation: spin .85s linear infinite;
+    }
+    .apple-spinner.size-sm { --size: 22px; }
+    .apple-spinner.size-md { --size: 32px; }
+    .apple-spinner.on-button { --color: #ffffff; --size: 18px; }
+    .apple-spinner.on-button { -webkit-mask: radial-gradient(circle, transparent calc(50% - 3px), black calc(50% - 2.5px));
+                                       mask: radial-gradient(circle, transparent calc(50% - 3px), black calc(50% - 2.5px)); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .animate-pop, .animate-hud, .animate-fade { animation: none !important; }
+      .apple-spinner { animation: pulse 1.5s ease-in-out infinite !important; }
+    }
+
+    .btn-press { transition: transform .15s var(--ease), box-shadow .2s var(--ease), background-color .2s var(--ease), opacity .2s var(--ease); }
+    .btn-press:active:not(:disabled) { transform: scale(0.97); }
+
+    .glass {
+      background: rgba(255,255,255,0.78);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+              backdrop-filter: saturate(180%) blur(20px);
+    }
+    .glass-strong {
+      background: rgba(255,255,255,0.88);
+      -webkit-backdrop-filter: saturate(180%) blur(28px);
+              backdrop-filter: saturate(180%) blur(28px);
+    }
+
+    input[type="number"], input[type="date"], input[type="text"], input[type="password"] {
+      font-feature-settings: "tnum" on;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(40%);
+      cursor: pointer;
+    }
+
+    /* Sutil hover lift em cards interativos */
+    .lift-on-hover { transition: transform .25s var(--ease), box-shadow .25s var(--ease); }
+    .lift-on-hover:hover { transform: translateY(-1px); }
+  </style>
 </head>
-<body>
-  <!-- Overlay de carregamento (invisível por padrão) -->
-  <div id="loading-overlay" class="loading-overlay hidden">
-    <div class="loading-spinner">
-      <div class="spinner"></div>
-      <p id="loading-message">Carregando...</p>
-    </div>
-  </div>
-  <div id="progress-wrapper" class="hidden">
-    <p id="progress-msg">Distribuindo leads… não feche a aba.</p>
-    <div id="progress-bar">
-      <div id="progress-fill"></div>
-    </div>
-    <p id="progress-count">0 / 0</p>
-  </div>
+<body class="min-h-screen font-sf text-ink-900">
+  <div id="root"></div>
+  <noscript class="block p-6 text-center text-apple-red">Este app exige JavaScript habilitado.</noscript>
 
-  <header>
-    <h1>Distribuição de Leads GRUPO VILLELA</h1>
-  </header>
-  <div id="modal-revisao" class="modal hidden">
-    <div class="modal-card">
-      <h3>Revisar distribuição</h3>
-      <ul id="lista-revisao"></ul>
+  <script type="text/babel" data-type="module" data-presets="react,typescript">
+    import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+    import { createRoot } from "react-dom/client";
+    import {
+      AlertCircle, Ban, Briefcase, Building2, Calendar, CalendarCheck, Check, ChevronDown,
+      Clock, FilePlus2, Inbox, Info, Layers, MessageCircleWarning, Plus, RotateCw,
+      Search, Send, Share2, ShieldCheck, SlidersHorizontal, Tag, TrendingDown, Trash2,
+      UserCircle2, Users, Workflow, X, XCircle,
+    } from "lucide-react";
 
-      <div class="modal-buttons">
-        <button id="btn-confirmar" class="btn-confirm">Confirmar</button>
-        <button id="btn-cancelar"  class="btn-cancel">Cancelar</button>
-      </div>
-    </div>
-  </div>
+    // ══════════════════════════════════════════════════════════════════════
+    // Helpers
+    // ══════════════════════════════════════════════════════════════════════
+    const API_BASE = (window.API_BASE_URL || "").replace(/\/$/, "");
+    const API_KEY_STORAGE = "distribuidor.apiKey";
 
-  <main>
-    <div class="filters">
-      <label for="filtro_pipe">Filtro:</label>
-      <select id="filtro_pipe">
-        <option value="">Carregando filtros...</option>
-      </select>
-    </div>
-    <div id="totais-leads-filtro">
-    </div>
-    
-    <!-- Container que vai receber os blocos de assessores -->
-    <div id="distribuicao">
-      <div class="bloco_assessor">
-        <!-- Blocos dinâmicos de assessores vão aqui -->
-      </div>
-    </div>
-    
-    <!-- Mensagens de erro (ocultas por padrão) -->
-    <div id="error-message" class="error hidden"></div>
-  </main>
-  <button id="distribuir">Distribuir</button>
+    function todayIso() { return new Date().toISOString().slice(0, 10); }
+    function formatDateBr(iso) {
+      if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso || "";
+      const [y, m, d] = iso.split("-");
+      return `${d}/${m}/${y}`;
+    }
+    function plural(n, sing, plur) { return n === 1 ? sing : plur; }
+    function sameId(a, b) { return Number(a) === Number(b); }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Cálculo local dos insights de um assessor a partir do snapshot da
+    // sessão. Substitui a chamada por-usuário ao backend — uma vez carregado,
+    // qualquer assessor é processado em milissegundos sem hit de rede.
+    // ──────────────────────────────────────────────────────────────────────
+    function computeInsights(snap, userId) {
+      const stagesMap = Object.fromEntries((snap.stages || []).map((s) => [s.id, s.name]));
+      const orgs = snap.orgs || {};
+      const today = snap.today || todayIso();
+
+      // Negócios abertos
+      const openMine = (snap.open_deals || []).filter((d) => sameId(d.owner_id, userId));
+      const por_etapa = {};
+      const por_classificacao = {};
+      const por_porte = {};
+      let criado_hoje = 0;
+      let sem_atividade = 0;
+      for (const d of openMine) {
+        const stageName = stagesMap[d.stage_id] || `Etapa ${d.stage_id}`;
+        por_etapa[stageName] = (por_etapa[stageName] || 0) + 1;
+        if (typeof d.add_time === "string" && d.add_time.startsWith(today)) criado_hoje++;
+        if (!d.next_activity_id) sem_atividade++;
+        const org = d.org_id != null ? orgs[d.org_id] : null;
+        const classif = (org && org.label) || "Sem classificação";
+        const porte = (org && org.porte) || "Sem porte";
+        por_classificacao[classif] = (por_classificacao[classif] || 0) + 1;
+        por_porte[porte] = (por_porte[porte] || 0) + 1;
+      }
+
+      // Perdidos hoje
+      const lostMine = (snap.lost_today_deals || []).filter((d) =>
+        sameId(d.owner_id, userId) && d.local_lost_date === today
+      );
+      const lost_por_etapa = {};
+      const lost_por_motivo = {};
+      for (const d of lostMine) {
+        const stageName = stagesMap[d.stage_id] || `Etapa ${d.stage_id}`;
+        const reason = d.lost_reason || "Sem motivo";
+        lost_por_etapa[stageName] = (lost_por_etapa[stageName] || 0) + 1;
+        lost_por_motivo[reason] = (lost_por_motivo[reason] || 0) + 1;
+      }
+
+      // Negócios novos hoje
+      const newMine = (snap.new_today_deals || []).filter((d) => sameId(d.owner_id, userId));
+
+      // Atividades (filtro 1339 = atrasadas + hoje; bucket por due_date)
+      let fazer = 0, atrasada = 0;
+      for (const a of (snap.activities_overdue || [])) {
+        if (!sameId(a.user_id, userId)) continue;
+        if (a.due_date === today) fazer++;
+        else atrasada++;
+      }
+      const agendasCount = (snap.activities_today || [])
+        .filter((a) => sameId(a.user_id, userId)).length;
+
+      return {
+        atividades: { fazer, atrasada },
+        negocios: {
+          total: openMine.length,
+          criado_hoje,
+          negocios_sem_atividade: sem_atividade,
+          por_etapa,
+          por_classificacao,
+          por_porte,
+        },
+        agendas_diarias: agendasCount,
+        negocios_perdidos: {
+          total: lostMine.length,
+          por_etapa: lost_por_etapa,
+          por_motivo: lost_por_motivo,
+        },
+        negocios_novos_hoje: newMine.length,
+      };
+    }
+
+    async function api(path, { method = "GET", body, signal } = {}) {
+      const headers = { Accept: "application/json" };
+      if (body !== undefined) headers["Content-Type"] = "application/json";
+      const apiKey = localStorage.getItem(API_KEY_STORAGE);
+      if (apiKey) headers["X-API-Key"] = apiKey;
+      let res;
+      try {
+        res = await fetch(`${API_BASE}${path}`, {
+          method, headers,
+          body: body !== undefined ? JSON.stringify(body) : undefined,
+          signal,
+        });
+      } catch {
+        const err = new Error("Não foi possível conectar ao servidor. Verifique se o backend está rodando.");
+        err.kind = "network";
+        throw err;
+      }
+      let data = null;
+      try { data = await res.json(); } catch { /* sem JSON */ }
+      if (!res.ok) {
+        const err = new Error(data?.message || data?.error || `Erro ${res.status}`);
+        err.status = res.status;
+        err.payload = data || {};
+        err.hint = data?.hint;
+        err.upstreamStatus = data?.upstream_status;
+        throw err;
+      }
+      return data;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // Loading HUD (modal central no padrão Apple)
+    // ══════════════════════════════════════════════════════════════════════
+    const LoadingCtx = React.createContext(null);
+
+    function LoadingProvider({ children }) {
+      // Stack de operações em curso. O topo é exibido.
+      const [stack, setStack] = useState([]);
+      const stackRef = useRef(stack);
+      useEffect(() => { stackRef.current = stack; }, [stack]);
+
+      const upsert = useCallback((id, data) => {
+        setStack((s) => {
+          const ix = s.findIndex((x) => x.id === id);
+          if (ix === -1) return [...s, { id, ...data }];
+          const copy = s.slice();
+          copy[ix] = { ...copy[ix], ...data };
+          return copy;
+        });
+      }, []);
+
+      const remove = useCallback((id) => {
+        setStack((s) => s.filter((x) => x.id !== id));
+      }, []);
+
+      // run(label, fn, opts) — exibe o HUD após `delay` ms e oculta ao fim.
+      // O fn recebe { update(patch) } para alterar label/detail/progress em tempo real.
+      const run = useCallback(async (label, fn, opts = {}) => {
+        const { delay = 200 } = opts;
+        const id = Math.random().toString(36).slice(2);
+        const state = { label, detail: opts.detail, progress: opts.progress };
+        let visible = false;
+        const timer = setTimeout(() => {
+          visible = true;
+          upsert(id, { ...state });
+        }, delay);
+        const update = (patch) => {
+          Object.assign(state, patch);
+          if (visible) upsert(id, patch);
+        };
+        try {
+          return await fn({ update });
+        } finally {
+          clearTimeout(timer);
+          if (visible) remove(id);
+        }
+      }, [upsert, remove]);
+
+      const value = useMemo(() => ({ run }), [run]);
+      const top = stack[stack.length - 1];
+
+      return (
+        <LoadingCtx.Provider value={value}>
+          {children}
+          {top && <LoadingHUD label={top.label} detail={top.detail} progress={top.progress} />}
+        </LoadingCtx.Provider>
+      );
+    }
+    const useLoading = () => useContext(LoadingCtx);
+
+    function AppleSpinner({ size = "md", onButton = false, label = "Carregando" }) {
+      const cls = onButton ? "apple-spinner on-button" : `apple-spinner size-${size}`;
+      return (
+        <span role="status" aria-label={label} className="inline-flex">
+          <span className={cls} aria-hidden="true" />
+          <span className="sr-only">{label}…</span>
+        </span>
+      );
+    }
+
+    function LoadingHUD({ label, detail, progress }) {
+      return (
+        <div role="status" aria-live="polite" aria-busy="true"
+             className="fixed inset-0 z-[80] flex items-center justify-center bg-black/35 backdrop-blur-md p-4 animate-fade">
+          <div className="rounded-3xl glass-strong shadow-soft border border-black/5 px-8 py-7 min-w-[280px] max-w-[440px] flex flex-col items-center gap-5 animate-hud">
+            <AppleSpinner size="md" label={label} />
+            <div className="text-center">
+              <div className="text-[15px] font-semibold tracking-tight text-ink-900">{label}</div>
+              {detail && <div className="text-[13px] text-ink-500 mt-1.5 max-w-[320px]">{detail}</div>}
+            </div>
+            {progress && progress.total > 0 && (
+              <div className="w-full pt-1">
+                <div className="h-1.5 rounded-full bg-black/[0.07] overflow-hidden">
+                  <div className="h-full bg-blue-600 transition-all duration-500"
+                       style={{ width: `${Math.min(100, Math.round((progress.done / progress.total) * 100))}%` }} />
+                </div>
+                <div className="text-[12px] text-ink-500 tabular-nums text-center mt-2 font-medium">
+                  {progress.done} / {progress.total}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // Toast (notificações não-bloqueantes)
+    // ══════════════════════════════════════════════════════════════════════
+    const ToastCtx = React.createContext(null);
+    function ToastProvider({ children }) {
+      const [items, setItems] = useState([]);
+      const push = useCallback((kind, message, ttl = 4500) => {
+        const id = Math.random().toString(36).slice(2);
+        setItems((xs) => [...xs, { id, kind, message }]);
+        if (ttl) setTimeout(() => setItems((xs) => xs.filter((x) => x.id !== id)), ttl);
+      }, []);
+      const value = useMemo(() => ({
+        success: (m, t) => push("success", m, t),
+        error:   (m, t) => push("error", m, t ?? 7500),
+        info:    (m, t) => push("info", m, t),
+      }), [push]);
+      return (
+        <ToastCtx.Provider value={value}>
+          {children}
+          <div role="region" aria-label="Notificações"
+               className="fixed top-3 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 w-[min(92vw,420px)]">
+            {items.map((t) => (
+              <div key={t.id} role={t.kind === "error" ? "alert" : "status"}
+                aria-live={t.kind === "error" ? "assertive" : "polite"}
+                className="glass-strong border border-black/5 shadow-soft rounded-2xl px-4 py-3 flex items-start gap-3 animate-pop">
+                {t.kind === "success" && <Check className="size-5 shrink-0 mt-0.5 text-emerald-600" aria-hidden="true" />}
+                {t.kind === "error"   && <AlertCircle className="size-5 shrink-0 mt-0.5 text-apple-red" aria-hidden="true" />}
+                {t.kind === "info"    && <Info className="size-5 shrink-0 mt-0.5 text-blue-600" aria-hidden="true" />}
+                <div className="flex-1 text-[14px] leading-5 text-ink-900">{renderToastMessage(t.message)}</div>
+                <button onClick={() => setItems((xs) => xs.filter((x) => x.id !== t.id))}
+                        className="rounded-full p-1 hover:bg-black/5 btn-press"
+                        aria-label="Fechar notificação">
+                  <X className="size-4" aria-hidden="true" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </ToastCtx.Provider>
+      );
+    }
+    function renderToastMessage(msg) {
+      if (typeof msg === "string") return msg;
+      if (msg && typeof msg === "object") {
+        return (
+          <div>
+            <div className="font-semibold text-ink-900">{msg.title}</div>
+            {msg.detail ? <div className="text-ink-500 text-[13px] mt-0.5">{msg.detail}</div> : null}
+          </div>
+        );
+      }
+      return String(msg);
+    }
+    const useToast = () => useContext(ToastCtx);
+
+    // ══════════════════════════════════════════════════════════════════════
+    // UI primitives
+    // ══════════════════════════════════════════════════════════════════════
+    function Section({ title, icon: Icon, action, children }) {
+      return (
+        <section className="mt-7">
+          <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+            <h4 className="flex items-center gap-2 text-[12px] font-semibold tracking-[0.06em] uppercase text-ink-500">
+              {Icon ? <Icon className="size-4" aria-hidden="true" /> : null}{title}
+            </h4>
+            {action}
+          </div>
+          {children}
+        </section>
+      );
+    }
+
+    function StatTile({ icon: Icon, label, value, tone = "neutral" }) {
+      const accents = {
+        neutral: "text-ink-500 bg-ink-500/10",
+        red:     "text-apple-red bg-apple-red/12",
+        amber:   "text-amber-700 bg-apple-orange/15",
+        blue:    "text-blue-700 bg-blue-500/12",
+        green:   "text-emerald-700 bg-apple-green/15",
+        indigo:  "text-apple-indigo bg-apple-indigo/12",
+        purple:  "text-apple-purple bg-apple-purple/12",
+      };
+      return (
+        <div className="rounded-2xl bg-white border border-black/5 shadow-card px-4 py-3.5 min-w-0 lift-on-hover">
+          <div className="flex items-center gap-2.5">
+            <span className={`size-7 rounded-xl grid place-items-center shrink-0 ${accents[tone]}`}>
+              {Icon ? <Icon className="size-[15px]" aria-hidden="true" /> : null}
+            </span>
+            <span className="text-[10.5px] uppercase tracking-[0.06em] font-semibold text-ink-500 truncate">{label}</span>
+          </div>
+          <div className="mt-2 text-[28px] leading-none font-semibold tabular-nums tracking-tight text-ink-900">{value}</div>
+        </div>
+      );
+    }
+
+    function Chip({ count, label, tone = "blue" }) {
+      const tones = {
+        blue:   "bg-blue-600 text-white",
+        red:    "bg-apple-red text-white",
+        slate:  "bg-ink-700 text-white",
+        green:  "bg-apple-green text-white",
+        indigo: "bg-apple-indigo text-white",
+        purple: "bg-apple-purple text-white",
+      };
+      return (
+        <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[13.5px] shadow-sm ${tones[tone]}`}>
+          <span className="font-semibold tabular-nums">{count}</span>
+          <span className="opacity-95">{label}</span>
+        </div>
+      );
+    }
+
+    function ErrorState({ title, message, hint, onRetry, retrying }) {
+      return (
+        <div role="alert" className="rounded-3xl bg-white border border-rose-100 shadow-soft p-6 sm:p-8 max-w-2xl mx-auto animate-pop">
+          <div className="flex items-start gap-3">
+            <div className="size-10 rounded-2xl bg-apple-red/10 grid place-items-center text-apple-red">
+              <AlertCircle className="size-5" aria-hidden="true" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg font-semibold tracking-tight text-ink-900">{title}</h2>
+              <p className="mt-1 text-[15px] text-ink-700">{message}</p>
+              {hint && <p className="mt-1 text-[13.5px] text-ink-500">{hint}</p>}
+              {onRetry && (
+                <div className="mt-4 flex gap-2">
+                  <button onClick={onRetry} disabled={retrying}
+                    className="btn-press inline-flex items-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white px-5 py-2 text-[14px] font-medium shadow-soft">
+                    {retrying ? <AppleSpinner onButton label="Tentando" /> : <RotateCw className="size-4" aria-hidden="true" />}
+                    Tentar novamente
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // SearchableSelect (sem dependências)
+    // ══════════════════════════════════════════════════════════════════════
+    function SearchableSelect({ options, value, onChange, placeholder = "Selecione…", disabled = false, ariaLabel }) {
+      const [open, setOpen] = useState(false);
+      const [query, setQuery] = useState("");
+      const ref = useRef(null);
+      useEffect(() => {
+        function onDocClick(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+        function onKey(e) { if (e.key === "Escape") setOpen(false); }
+        document.addEventListener("mousedown", onDocClick);
+        document.addEventListener("keydown", onKey);
+        return () => { document.removeEventListener("mousedown", onDocClick); document.removeEventListener("keydown", onKey); };
+      }, []);
+      const selected = options.find((o) => String(o.value) === String(value));
+      const filtered = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        if (!q) return options;
+        return options.filter((o) =>
+          o.label.toLowerCase().includes(q) || (o.email || "").toLowerCase().includes(q)
+        );
+      }, [options, query]);
+      return (
+        <div ref={ref} className="relative w-full">
+          <button type="button" disabled={disabled}
+            aria-haspopup="listbox" aria-expanded={open} aria-label={ariaLabel}
+            onClick={() => setOpen((v) => !v)}
+            className={`btn-press w-full flex items-center justify-between gap-2 rounded-2xl bg-white px-4 py-2.5 text-left
+                       border border-black/10 shadow-card hover:border-black/20
+                       ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}>
+            <span className={`truncate text-[15px] ${selected ? "text-ink-900" : "text-ink-400"}`}>
+              {selected ? selected.label : placeholder}
+            </span>
+            <ChevronDown className={`size-4 text-ink-400 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
+          </button>
+          {open && (
+            <div role="listbox" className="absolute z-30 mt-2 w-full rounded-2xl border border-black/5 bg-white shadow-soft animate-pop overflow-hidden">
+              <div className="flex items-center gap-2 border-b border-black/5 px-3.5 py-2.5">
+                <Search className="size-4 text-ink-400" aria-hidden="true" />
+                <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Buscar…"
+                  className="w-full bg-transparent outline-none text-[15px]"
+                  aria-label="Buscar nas opções" />
+                {query && (
+                  <button onClick={() => setQuery("")} aria-label="Limpar busca" className="btn-press">
+                    <X className="size-4 text-ink-400" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+              <ul className="max-h-72 overflow-auto py-1">
+                {filtered.length === 0 ? (
+                  <li className="px-4 py-3 text-sm text-ink-400">Nenhum resultado.</li>
+                ) : filtered.map((o) => (
+                  <li key={o.value} role="option" aria-selected={String(o.value) === String(value)}>
+                    <button type="button"
+                      onClick={() => { onChange(o.value); setOpen(false); setQuery(""); }}
+                      className={`w-full text-left px-4 py-2.5 text-[15px] hover:bg-black/[0.04]
+                        ${String(o.value) === String(value) ? "bg-blue-500/10 text-blue-700" : "text-ink-900"}`}>
+                      <div className="font-medium tracking-tight">{o.label}</div>
+                      {o.email && <div className="text-[12px] text-ink-500 mt-0.5">{o.email}</div>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // Painel de insights do assessor
+    // ══════════════════════════════════════════════════════════════════════
+    function InsightsPanel({ assessor, stages }) {
+      const toast = useToast();
+      const loader = useLoading();
+      const insights = assessor.insights;
+      const [start, setStart] = useState(todayIso());
+      const [end, setEnd] = useState(todayIso());
+      const [perdidosOverride, setPerdidosOverride] = useState(null);
+
+      // stages = [{ id, name, order_nr }] já vem ordenado por order_nr asc do backend
+      const orderedStageNames = useMemo(() => stages.map((s) => s.name), [stages]);
+
+      async function aplicarPeriodo() {
+        if (!assessor.userId) return;
+        if (start > end) { toast.error("Data inicial deve ser anterior à final."); return; }
+        try {
+          const data = await loader.run(
+            `Buscando perdidos de ${assessor.name}`,
+            () => api(`/api/assessor/${assessor.userId}/perdidos`, {
+              method: "POST", body: { start, end },
+            }),
+            { detail: `${formatDateBr(start)} até ${formatDateBr(end)}` }
+          );
+          setPerdidosOverride({ start, end, ...data });
+        } catch (e) {
+          toast.error({ title: "Falha ao buscar perdidos", detail: e.message });
+        }
+      }
+
+      const negocios = insights.negocios || {};
+      const perdidosHoje = insights.negocios_perdidos || {};
+      const atvs = insights.atividades || { fazer: 0, atrasada: 0 };
+
+      // Backend agora envia o shape estruturado: por_etapa / por_classificacao / por_porte
+      const porEtapa = negocios.por_etapa || {};
+      const porClassificacao = negocios.por_classificacao || {};
+      const porPorte = negocios.por_porte || {};
+
+      const chipsAbertos = orderedStageNames
+        .filter((etapa) => porEtapa[etapa])
+        .map((etapa) => <Chip key={etapa} count={porEtapa[etapa]} label={etapa} tone="blue" />);
+
+      // Ordena classificação e porte do maior contagem para o menor (mais visual).
+      // "Sem classificação" e "Sem porte" sempre vão para o final.
+      function sortFallbackLast(entries, fallbackKeys) {
+        return entries.sort((a, b) => {
+          const aFallback = fallbackKeys.includes(a[0]);
+          const bFallback = fallbackKeys.includes(b[0]);
+          if (aFallback !== bFallback) return aFallback ? 1 : -1;
+          return b[1] - a[1];
+        });
+      }
+      const chipsClassificacao = sortFallbackLast(
+        Object.entries(porClassificacao), ["Sem classificação"]
+      ).map(([label, count]) => (
+        <Chip key={label} count={count} label={label}
+              tone={label === "Sem classificação" ? "slate" : "indigo"} />
+      ));
+      const chipsPorte = sortFallbackLast(
+        Object.entries(porPorte), ["Sem porte"]
+      ).map(([label, count]) => (
+        <Chip key={label} count={count} label={label}
+              tone={label === "Sem porte" ? "slate" : "purple"} />
+      ));
+
+      // Perdidos: backend retorna {total, por_etapa, por_motivo}
+      const perdidosByStage = perdidosOverride?.por_etapa || perdidosHoje.por_etapa || {};
+      const perdidosByReason = perdidosOverride?.por_motivo || perdidosHoje.por_motivo || {};
+
+      const tituloPerdidos = perdidosOverride
+        ? (perdidosOverride.start === perdidosOverride.end
+            ? (perdidosOverride.start === todayIso()
+                ? "Perdidos hoje por etapa"
+                : `Perdidos em ${formatDateBr(perdidosOverride.start)} por etapa`)
+            : `Perdidos de ${formatDateBr(perdidosOverride.start)} até ${perdidosOverride.end === todayIso() ? "hoje" : formatDateBr(perdidosOverride.end)}`)
+        : "Perdidos hoje por etapa";
+
+      const atrasadasTone = (atvs.atrasada || 0) > 0 ? "red" : "neutral";
+      const perdidosTone  = (perdidosHoje.total || 0) > 0 ? "red" : "neutral";
+      const semAtividadeTone = (negocios.negocios_sem_atividade || 0) > 0 ? "red" : "neutral";
+
+      return (
+        <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <StatTile icon={Clock}         label="Atividades atrasadas" value={atvs.atrasada || 0}                          tone={atrasadasTone} />
+          <StatTile icon={Calendar}      label="Atividades hoje"      value={atvs.fazer || 0}                              tone="amber" />
+          <StatTile icon={Briefcase}     label="Em prospecção"        value={negocios.total || 0}                          tone="blue" />
+          <StatTile icon={XCircle}       label="Perdidos hoje"        value={perdidosHoje.total || 0}                      tone={perdidosTone} />
+          <StatTile icon={CalendarCheck} label="Reuniões hoje"        value={insights.agendas_diarias || 0}                tone="green" />
+          <StatTile icon={Ban}           label="Sem atividade"        value={negocios.negocios_sem_atividade || 0}         tone={semAtividadeTone} />
+          <StatTile icon={Inbox}         label="Recebidos hoje"       value={insights.negocios_novos_hoje || 0}            tone="green" />
+          <StatTile icon={FilePlus2}     label="Criados hoje"         value={negocios.criado_hoje || 0}                    tone="indigo" />
+
+          <div className="col-span-full">
+            <Section title="Negócios abertos por etapa" icon={Layers}>
+              <div className="flex flex-wrap gap-2">
+                {chipsAbertos.length ? chipsAbertos :
+                  <span className="text-[14px] text-ink-500">Nenhum negócio em prospecção.</span>}
+              </div>
+            </Section>
+
+            <Section title="Negócios abertos por classificação" icon={Tag}>
+              <div className="flex flex-wrap gap-2">
+                {chipsClassificacao.length ? chipsClassificacao :
+                  <span className="text-[14px] text-ink-500">Sem classificação encontrada.</span>}
+              </div>
+            </Section>
+
+            <Section title="Negócios abertos por porte" icon={Building2}>
+              <div className="flex flex-wrap gap-2">
+                {chipsPorte.length ? chipsPorte :
+                  <span className="text-[14px] text-ink-500">Sem porte encontrado.</span>}
+              </div>
+            </Section>
+
+            <Section title={tituloPerdidos} icon={TrendingDown}
+              action={
+                <div className="flex flex-wrap items-center gap-2">
+                  <input type="date" value={start} onChange={(e) => setStart(e.target.value)}
+                         aria-label="Data inicial"
+                         className="rounded-xl border border-black/10 bg-white px-3 py-1.5 text-[13.5px] shadow-card" />
+                  <span className="text-ink-400 text-xs">até</span>
+                  <input type="date" value={end} onChange={(e) => setEnd(e.target.value)}
+                         aria-label="Data final"
+                         className="rounded-xl border border-black/10 bg-white px-3 py-1.5 text-[13.5px] shadow-card" />
+                  <button onClick={aplicarPeriodo}
+                          className="btn-press inline-flex items-center gap-1.5 rounded-full bg-ink-900 hover:bg-black text-white text-[13.5px] px-4 py-1.5">
+                    <SlidersHorizontal className="size-4" aria-hidden="true" /> Aplicar
+                  </button>
+                </div>
+              }>
+              <div className="flex flex-wrap gap-2">
+                {Object.keys(perdidosByStage).length ?
+                  orderedStageNames.filter((e) => perdidosByStage[e])
+                    .map((e) => <Chip key={e} count={perdidosByStage[e]} label={e} tone="red" />)
+                  : <span className="text-[14px] text-ink-500">Nenhum negócio perdido no período.</span>}
+              </div>
+            </Section>
+
+            <Section title="Motivos de perda" icon={MessageCircleWarning}>
+              <div className="flex flex-wrap gap-2">
+                {Object.keys(perdidosByReason).length ?
+                  Object.entries(perdidosByReason)
+                    .map(([m, c]) => <Chip key={m} count={c} label={m} tone="red" />)
+                  : <span className="text-[14px] text-ink-500">Nenhum motivo registrado.</span>}
+              </div>
+            </Section>
+          </div>
+        </div>
+      );
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // Card de assessor
+    // ══════════════════════════════════════════════════════════════════════
+    function AssessorCard({ assessor, availableUsers, onChangeUser, onChangeQty, onLoadInsights, onRemove, canRemove, stages, ensureSnapshot }) {
+      const toast = useToast();
+
+      const userOptions = useMemo(() => {
+        const base = availableUsers.map((u) => ({ value: u.id, label: u.name, email: u.email }));
+        if (assessor.userId && !base.find((o) => o.value === assessor.userId)) {
+          base.unshift({ value: assessor.userId, label: assessor.name, email: assessor.email });
+        }
+        return base;
+      }, [availableUsers, assessor.userId, assessor.name, assessor.email]);
+
+      async function loadInsights() {
+        if (!assessor.userId) { toast.error("Selecione um assessor primeiro."); return; }
+        try {
+          // Snapshot da sessão é buscado uma única vez; cliques subsequentes
+          // são instantâneos porque a computação é feita localmente.
+          const snap = await ensureSnapshot();
+          const insights = computeInsights(snap, assessor.userId);
+          onLoadInsights(insights);
+        } catch (e) {
+          toast.error({ title: "Falha ao carregar insights", detail: e.message });
+        }
+      }
+
+      return (
+        <div className="rounded-3xl bg-white shadow-soft border border-black/5 p-5 sm:p-6 animate-pop">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_auto] gap-3 items-end">
+            <div className="min-w-0">
+              <label className="text-[10.5px] font-semibold uppercase tracking-[0.08em] text-ink-500 mb-1.5 flex items-center gap-1.5">
+                <UserCircle2 className="size-3.5" aria-hidden="true" /> Assessor
+              </label>
+              <SearchableSelect
+                options={userOptions}
+                value={assessor.userId || ""}
+                onChange={(v) => {
+                  const u = availableUsers.find((x) => x.id === v) || { id: v, name: "", email: "" };
+                  onChangeUser(u);
+                }}
+                placeholder="Selecione o assessor"
+                ariaLabel="Selecionar assessor"
+              />
+            </div>
+
+            <div>
+              <label htmlFor={`qty-${assessor.id}`} className="block text-[10.5px] font-semibold uppercase tracking-[0.08em] text-ink-500 mb-1.5">
+                Qtd. de leads
+              </label>
+              <input id={`qty-${assessor.id}`} type="number" step="10" min="0" max="500"
+                value={assessor.leadsTarget}
+                onChange={(e) => onChangeQty(Math.max(0, Number(e.target.value) || 0))}
+                className="w-32 rounded-2xl border border-black/10 bg-white px-3 py-2.5 tabular-nums text-[15px] shadow-card" />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
+              <button onClick={loadInsights} disabled={!assessor.userId}
+                className="btn-press inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-5 py-2.5 text-[14px] font-medium shadow-soft">
+                <Workflow className="size-4" aria-hidden="true" />
+                {assessor.insights ? "Recarregar insights" : "Carregar insights"}
+              </button>
+              {canRemove && (
+                <button onClick={onRemove}
+                  aria-label="Remover assessor"
+                  className="btn-press inline-flex items-center justify-center gap-2 rounded-full bg-rose-50 hover:bg-rose-100 text-apple-red px-4 py-2.5 text-[14px] font-medium border border-rose-100">
+                  <Trash2 className="size-4" aria-hidden="true" /> Remover
+                </button>
+              )}
+            </div>
+          </div>
+
+          {assessor.userId && (
+            <div className="mt-3 flex items-center gap-2 text-[13.5px] text-ink-500">
+              <UserCircle2 className="size-4 text-ink-400" aria-hidden="true" />
+              <span className="font-medium text-ink-700 tracking-tight">{assessor.name}</span>
+              {assessor.email && <span className="text-ink-400">· {assessor.email}</span>}
+            </div>
+          )}
+
+          {assessor.insights ? (
+            <InsightsPanel assessor={assessor} stages={stages} />
+          ) : (
+            <div className="mt-5 rounded-2xl border border-dashed border-black/10 bg-surface-50/60 px-4 py-7 text-center text-[14.5px] text-ink-500">
+              Carregue os insights para ver atividades, negócios e perdidos deste assessor.
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // Modais auxiliares
+    // ══════════════════════════════════════════════════════════════════════
+    function ReviewModal({ open, items, onConfirm, onClose }) {
+      useEffect(() => {
+        if (!open) return;
+        const onKey = (e) => { if (e.key === "Escape") onClose(); };
+        document.addEventListener("keydown", onKey);
+        return () => document.removeEventListener("keydown", onKey);
+      }, [open, onClose]);
+      if (!open) return null;
+      const total = items.reduce((s, x) => s + x.qtd, 0);
+      return (
+        <div role="dialog" aria-modal="true" aria-labelledby="review-title"
+             className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-md p-4 animate-fade">
+          <div className="w-full max-w-md rounded-3xl glass-strong shadow-soft border border-black/5 animate-pop">
+            <div className="flex items-center justify-between border-b border-black/5 px-5 py-4">
+              <h3 id="review-title" className="font-semibold tracking-tight flex items-center gap-2">
+                <ShieldCheck className="size-5 text-blue-600" aria-hidden="true" />Revisar distribuição
+              </h3>
+              <button onClick={onClose} aria-label="Fechar"
+                      className="btn-press rounded-full p-1.5 hover:bg-black/5">
+                <X className="size-5" aria-hidden="true" />
+              </button>
+            </div>
+            <div className="px-5 py-4 max-h-[55vh] overflow-y-auto">
+              {items.length === 0 ? (
+                <p className="text-[14px] text-ink-500">Nenhum lead para distribuir.</p>
+              ) : (
+                <ul className="divide-y divide-black/5">
+                  {items.map((r, i) => (
+                    <li key={i} className="py-2.5 flex items-center justify-between gap-2">
+                      <span className="font-medium text-ink-900 truncate">{r.nome}</span>
+                      <span className="rounded-full bg-blue-600/10 text-blue-700 px-2.5 py-0.5 text-[12.5px] font-semibold tabular-nums">
+                        {r.qtd} {plural(r.qtd, "lead", "leads")}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="mt-3 text-[13.5px] text-ink-500">
+                Total a distribuir: <span className="font-semibold text-ink-900 tabular-nums">{total}</span>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 border-t border-black/5 px-5 py-3 rounded-b-3xl">
+              <button onClick={onClose}
+                className="btn-press rounded-full px-5 py-2 text-[14.5px] font-medium text-ink-700 hover:bg-black/5">
+                Cancelar
+              </button>
+              <button onClick={onConfirm} disabled={total === 0}
+                className="btn-press inline-flex items-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 text-[14.5px] font-medium disabled:opacity-50 shadow-soft">
+                <Send className="size-4" aria-hidden="true" /> Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function ApiKeyGate({ open, onSaved }) {
+      const [val, setVal] = useState(localStorage.getItem(API_KEY_STORAGE) || "");
+      if (!open) return null;
+      return (
+        <div role="dialog" aria-modal="true" aria-labelledby="apikey-title"
+             className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-md p-4 animate-fade">
+          <div className="w-full max-w-md rounded-3xl glass-strong shadow-soft border border-black/5 p-6 animate-pop">
+            <h3 id="apikey-title" className="font-semibold tracking-tight flex items-center gap-2">
+              <ShieldCheck className="size-5 text-blue-600" aria-hidden="true" />Acesso restrito
+            </h3>
+            <p className="mt-2 text-[14.5px] text-ink-700">Informe a chave de acesso para usar o app. Ela fica armazenada apenas no seu navegador.</p>
+            <input type="password" value={val} onChange={(e) => setVal(e.target.value)}
+              className="mt-3 w-full rounded-2xl border border-black/10 bg-white px-4 py-2.5 shadow-card"
+              placeholder="X-API-Key" aria-label="Chave de acesso" />
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => { localStorage.setItem(API_KEY_STORAGE, val.trim()); onSaved(); }}
+                disabled={!val.trim()}
+                className="btn-press rounded-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-5 py-2 text-[14.5px] font-medium shadow-soft">
+                Salvar e continuar
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // Header / brand
+    // ══════════════════════════════════════════════════════════════════════
+    function HeaderBrand({ usersCount, status }) {
+      return (
+        <header className="sticky top-0 z-30 glass-strong border-b border-black/5">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="size-10 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 grid place-items-center text-white shadow-soft"
+                   aria-hidden="true">
+                <span className="font-semibold tracking-tight text-[15px]">GV</span>
+              </div>
+              <div className="min-w-0">
+                <h1 className="font-semibold tracking-tight text-ink-900 truncate text-[17px]">Distribuição de Leads</h1>
+                <p className="text-[12px] text-ink-500 truncate">Grupo Villela</p>
+              </div>
+            </div>
+            <div className="hidden md:flex items-center gap-3 text-[12.5px] text-ink-500">
+              {usersCount > 0 && (
+                <span className="inline-flex items-center gap-1.5">
+                  <Users className="size-3.5" aria-hidden="true" />
+                  <span className="font-medium text-ink-700 tabular-nums">{usersCount}</span> assessores
+                </span>
+              )}
+              <span className="h-3 w-px bg-black/10" aria-hidden="true" />
+              <span className="inline-flex items-center gap-1.5">
+                <ShieldCheck className="size-3.5 text-emerald-600" aria-hidden="true" />
+                <span className="text-ink-700">Backend protegido</span>
+              </span>
+            </div>
+          </div>
+        </header>
+      );
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // App principal
+    // ══════════════════════════════════════════════════════════════════════
+    function App() {
+      const toast = useToast();
+      const loader = useLoading();
+      const [bootError, setBootError] = useState(null);
+      const [authNeeded, setAuthNeeded] = useState(false);
+      const [filters, setFilters] = useState([]);
+      const [users, setUsers] = useState([]);
+      const [stages, setStages] = useState([]);
+      const [filterId, setFilterId] = useState("");
+      const [leads, setLeads] = useState(null);
+      const [assessors, setAssessors] = useState([newAssessor()]);
+      const [reviewOpen, setReviewOpen] = useState(false);
+      const [snapshot, setSnapshot] = useState(null);
+      const snapshotPromiseRef = useRef(null);
+
+      function newAssessor() {
+        return { id: Math.random().toString(36).slice(2), userId: "", name: "", email: "", leadsTarget: 20, insights: null };
+      }
+
+      const bootstrap = useCallback(async () => {
+        setBootError(null);
+        try {
+          const health = await api("/api/health");
+          if (health?.auth_required && !localStorage.getItem(API_KEY_STORAGE)) {
+            setAuthNeeded(true);
+            return;
+          }
+          await loader.run("Carregando dados", async ({ update }) => {
+            update({ detail: "Filtros, assessores e etapas do Pipedrive…" });
+            const [fs, us, sts] = await Promise.all([
+              api("/api/filters"),
+              api("/api/users"),
+              api("/api/stages"),
+            ]);
+            setFilters(fs || []);
+            setUsers(us || []);
+            setStages(sts || []);
+          }, { delay: 0 });
+        } catch (e) {
+          if (e.status === 401) { setAuthNeeded(true); return; }
+          setBootError({
+            title: e.kind === "network" ? "Sem conexão com o backend" : "Não foi possível carregar os dados",
+            message: e.message,
+            hint: e.hint || (e.upstreamStatus ? `Pipedrive respondeu com status ${e.upstreamStatus}.` : null),
+          });
+        }
+      }, [loader]);
+
+      useEffect(() => { bootstrap(); }, [bootstrap]);
+
+      async function onChangeFilter(id) {
+        setFilterId(id);
+        setLeads(null);
+        if (!id) return;
+        try {
+          const data = await loader.run(
+            "Carregando leads",
+            () => api(`/api/leads?filter_id=${encodeURIComponent(id)}`),
+            { detail: "Buscando todos os leads do filtro…" }
+          );
+          setLeads(data);
+        } catch (e) {
+          toast.error({ title: "Erro ao buscar leads", detail: e.message });
+        }
+      }
+
+      const selectedUserIds = useMemo(() => new Set(assessors.map((a) => a.userId).filter(Boolean)), [assessors]);
+      const availableUsersFor = useCallback((self) =>
+        users.filter((u) => !selectedUserIds.has(u.id) || u.id === self.userId),
+        [users, selectedUserIds]);
+
+      function patchAssessor(id, patch) { setAssessors((xs) => xs.map((a) => a.id === id ? { ...a, ...patch } : a)); }
+      function removeAssessor(id) { setAssessors((xs) => xs.length === 1 ? xs : xs.filter((a) => a.id !== id)); }
+      function addAssessor() { setAssessors((xs) => [...xs, newAssessor()]); }
+
+      // Carrega o snapshot UMA VEZ por sessão; cliques concorrentes
+      // compartilham a mesma promise. Reload da página invalida tudo.
+      const ensureSnapshot = useCallback(async () => {
+        if (snapshot) return snapshot;
+        if (snapshotPromiseRef.current) return snapshotPromiseRef.current;
+        const promise = loader.run(
+          "Preparando dados da sessão",
+          () => api("/api/insights-snapshot"),
+          {
+            detail: "Carregando uma vez para todos os assessores. Demais cliques são instantâneos.",
+            delay: 0,
+          }
+        ).then((data) => {
+          setSnapshot(data);
+          snapshotPromiseRef.current = null;
+          return data;
+        }).catch((e) => {
+          snapshotPromiseRef.current = null;
+          throw e;
+        });
+        snapshotPromiseRef.current = promise;
+        return promise;
+      }, [snapshot, loader]);
+
+      const distribution = useMemo(() => {
+        if (!leads || !leads.grouped) return [];
+        const titulos = Object.keys(leads.grouped).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+        let cursor = 0;
+        const out = [];
+        for (const a of assessors) {
+          const ids = [];
+          while (ids.length < a.leadsTarget && cursor < titulos.length) {
+            const t = titulos[cursor];
+            const bucket = leads.grouped[t];
+            ids.push(...bucket.ids);
+            cursor++;
+          }
+          out.push({ assessorId: a.userId, nome: a.name || "(sem assessor)", qtd: ids.length, ids });
+        }
+        return out;
+      }, [leads, assessors]);
+
+      async function confirmDistribuir() {
+        setReviewOpen(false);
+        const groups = distribution.filter((g) => g.qtd > 0 && g.assessorId);
+        const total = groups.reduce((s, g) => s + g.qtd, 0);
+        if (!total) { toast.error("Nenhum lead para distribuir."); return; }
+        try {
+          await loader.run("Distribuindo leads", async ({ update }) => {
+            let done = 0;
+            update({ detail: "Iniciando…", progress: { done, total } });
+            for (const g of groups) {
+              update({ detail: `Distribuindo para ${g.nome}…`, progress: { done, total } });
+              const res = await api("/api/distribute", {
+                method: "POST",
+                body: { owner_id: g.assessorId, lead_ids: g.ids },
+              });
+              done += res?.summary?.converted || 0;
+              update({ detail: `${g.nome} concluído`, progress: { done, total } });
+            }
+          }, { delay: 0 });
+          toast.success(`${total} ${plural(total, "lead distribuído", "leads distribuídos")} com sucesso.`);
+          setTimeout(() => window.location.reload(), 1800);
+        } catch (e) {
+          toast.error({ title: "Erro durante a distribuição", detail: e.message });
+        }
+      }
+
+      const totalDistribuido = distribution.reduce((s, x) => s + x.qtd, 0);
+      const assessoresCount = distribution.filter((x) => x.qtd > 0 && x.assessorId).length;
+
+      return (
+        <>
+          <ApiKeyGate open={authNeeded} onSaved={async () => {
+            setAuthNeeded(false);
+            await bootstrap();
+          }} />
+
+          <HeaderBrand usersCount={users.length} />
+
+          <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 pb-32">
+            {bootError ? (
+              <ErrorState
+                title={bootError.title}
+                message={bootError.message}
+                hint={bootError.hint}
+                onRetry={bootstrap}
+              />
+            ) : (
+              <>
+                {/* Filtro + stats de leads (Apple-style metric strip) */}
+                <section className="relative z-20 rounded-3xl glass shadow-soft border border-black/5 p-5 sm:p-6 animate-pop">
+                  <label className="text-[10.5px] font-semibold uppercase tracking-[0.08em] text-ink-500 mb-1.5 flex items-center gap-1.5">
+                    <SlidersHorizontal className="size-3.5" aria-hidden="true" /> Filtro do Pipedrive
+                  </label>
+                  <SearchableSelect
+                    options={filters.map((f) => ({ value: f.id, label: f.name }))}
+                    value={filterId}
+                    onChange={onChangeFilter}
+                    placeholder={filters.length === 0 ? "Nenhum filtro disponível" : "Selecione o filtro"}
+                    disabled={filters.length === 0}
+                    ariaLabel="Selecionar filtro"
+                  />
+
+                  {leads && (
+                    <div className="mt-5 pt-5 border-t border-black/5 flex items-end gap-8 sm:gap-10 animate-fade">
+                      <div>
+                        <div className="text-[28px] leading-none font-semibold tabular-nums tracking-tight text-ink-900">{leads.total}</div>
+                        <div className="mt-1.5 text-[10.5px] uppercase tracking-[0.08em] font-semibold text-ink-500">
+                          {plural(leads.total, "Lead disponível", "Leads disponíveis")}
+                        </div>
+                      </div>
+                      <div className="h-10 w-px bg-black/10" aria-hidden="true" />
+                      <div>
+                        <div className="text-[28px] leading-none font-semibold tabular-nums tracking-tight text-ink-900">{leads.total_unicos}</div>
+                        <div className="mt-1.5 text-[10.5px] uppercase tracking-[0.08em] font-semibold text-ink-500">
+                          {plural(leads.total_unicos, "Único", "Únicos")}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </section>
+
+                {/* Lista de assessores */}
+                <section className="mt-6 space-y-4">
+                  {assessors.map((a) => (
+                    <AssessorCard
+                      key={a.id}
+                      assessor={a}
+                      availableUsers={availableUsersFor(a)}
+                      canRemove={assessors.length > 1}
+                      stages={stages}
+                      ensureSnapshot={ensureSnapshot}
+                      onRemove={() => removeAssessor(a.id)}
+                      onChangeUser={(u) => patchAssessor(a.id, { userId: u.id, name: u.name, email: u.email, insights: null })}
+                      onChangeQty={(qty) => patchAssessor(a.id, { leadsTarget: qty })}
+                      onLoadInsights={(data) => patchAssessor(a.id, { insights: data })}
+                    />
+                  ))}
+
+                  {filterId && (
+                    <button onClick={addAssessor}
+                      className="btn-press w-full rounded-3xl border-2 border-dashed border-black/15 hover:border-blue-500 hover:bg-blue-500/5 text-ink-500 hover:text-blue-700 py-5 transition flex items-center justify-center gap-2 font-medium">
+                      <Plus className="size-5" aria-hidden="true" /> Adicionar outro assessor
+                    </button>
+                  )}
+                </section>
+
+                {!filterId && (
+                  <div className="mt-8 rounded-3xl border border-dashed border-black/10 bg-white/60 p-12 text-center">
+                    <SlidersHorizontal className="size-8 text-ink-400 mx-auto" aria-hidden="true" />
+                    <p className="mt-3 text-[15px] text-ink-700 tracking-tight">Selecione um filtro para começar a distribuir leads.</p>
+                  </div>
+                )}
+              </>
+            )}
+          </main>
+
+          {/* Barra fixa de ação */}
+          {filterId && leads && !bootError && (
+            <div className="fixed bottom-0 left-0 right-0 z-30 glass-strong border-t border-black/5">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
+                <div className="text-[13.5px] text-ink-700">
+                  Pronto para distribuir <span className="font-semibold text-ink-900 tabular-nums">{totalDistribuido}</span> leads
+                  para <span className="font-semibold text-ink-900 tabular-nums">{assessoresCount}</span> {plural(assessoresCount, "assessor", "assessores")}.
+                </div>
+                <button onClick={() => setReviewOpen(true)} disabled={totalDistribuido === 0}
+                  className="btn-press inline-flex items-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-6 py-2.5 text-[14.5px] font-medium shadow-soft">
+                  <Share2 className="size-4" aria-hidden="true" /> Distribuir
+                </button>
+              </div>
+            </div>
+          )}
+
+          <ReviewModal open={reviewOpen} items={distribution} onClose={() => setReviewOpen(false)} onConfirm={confirmDistribuir} />
+        </>
+      );
+    }
+
+    createRoot(document.getElementById("root")).render(
+      <LoadingProvider>
+        <ToastProvider>
+          <App />
+        </ToastProvider>
+      </LoadingProvider>
+    );
+  </script>
 </body>
 </html>
