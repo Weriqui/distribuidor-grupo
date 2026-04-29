@@ -27,6 +27,9 @@ substitutions:
   _FILTER_OWNER_IDS: "14284568,23639057"
   _FILTER_NAME_SUFFIX: " (FILTRO)"
   _ORG_FETCH_WORKERS: "12"
+  # Origens autorizadas a embedar o app em iframe (CSP frame-ancestors).
+  # Vazio = bloqueia todo embed. Use `*` pra liberar, ou liste origens.
+  _FRAME_ANCESTORS: ""
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -100,4 +103,4 @@ steps:
       #   3) substitua a linha abaixo por:
       #      - --set-secrets=PIPEDRIVE_API_TOKEN=pipedrive-api-token:latest,APP_API_KEY=app-api-key:latest
       - --set-secrets=PIPEDRIVE_API_TOKEN=pipedrive-api-token:latest
-      - --set-env-vars=^@@^ALLOWED_ORIGINS=${_ALLOWED_ORIGINS}@@PIPEDRIVE_FILTER_OWNER_IDS=${_FILTER_OWNER_IDS}@@PIPEDRIVE_FILTER_NAME_SUFFIX=${_FILTER_NAME_SUFFIX}@@PIPEDRIVE_ORG_FETCH_WORKERS=${_ORG_FETCH_WORKERS}
+      - --set-env-vars=^@@^ALLOWED_ORIGINS=${_ALLOWED_ORIGINS}@@PIPEDRIVE_FILTER_OWNER_IDS=${_FILTER_OWNER_IDS}@@PIPEDRIVE_FILTER_NAME_SUFFIX=${_FILTER_NAME_SUFFIX}@@PIPEDRIVE_ORG_FETCH_WORKERS=${_ORG_FETCH_WORKERS}@@FRAME_ANCESTORS=${_FRAME_ANCESTORS}

@@ -51,6 +51,11 @@ FILTER_OWNER_IDS = [
 ]
 FILTER_NAME_SUFFIX = os.environ.get("PIPEDRIVE_FILTER_NAME_SUFFIX", "")
 
+# Origens autorizadas a embedar o app em iframe via CSP `frame-ancestors`.
+# Vazio (padrão) = mantém X-Frame-Options: DENY (bloqueia qualquer embed).
+# Use `*` para liberar geral, ou `'self' https://app.exemplo.com` para travar.
+FRAME_ANCESTORS = os.environ.get("FRAME_ANCESTORS", "").strip()
+
 PIPEDRIVE_BASE_V1 = "https://api.pipedrive.com/v1"
 PIPEDRIVE_BASE_V2 = "https://api.pipedrive.com/api/v2"
 REQUEST_TIMEOUT = 30
@@ -816,11 +821,18 @@ def _convert_lead(lead_id: str) -> bool:
 @app.after_request
 def add_security_headers(response):
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
-    response.headers.setdefault("X-Frame-Options", "DENY")
     response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     response.headers.setdefault(
         "Permissions-Policy", "geolocation=(), microphone=(), camera=()"
     )
+    if FRAME_ANCESTORS:
+        # CSP frame-ancestors substitui X-Frame-Options nos navegadores
+        # modernos e suporta múltiplas origens explícitas.
+        response.headers["Content-Security-Policy"] = (
+            f"frame-ancestors {FRAME_ANCESTORS};"
+        )
+    else:
+        response.headers.setdefault("X-Frame-Options", "DENY")
     return response
 
 
